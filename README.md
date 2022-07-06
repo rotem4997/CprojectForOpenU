@@ -6,3 +6,4 @@ Project for C in Open U
 * Check first pass 
 * Check second pass
 * Check valid names
+* Add comments
