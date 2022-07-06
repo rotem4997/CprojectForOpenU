@@ -22,7 +22,11 @@
 
 
 /** Boolean definition true or false */
-typedef enum {false, true} bool;
+typedef enum booleans 
+{
+    FALSE = 0,
+    TRUE = 1
+} booleans;
 
 /**symbol declration*/
 typedef struct char_symbols
@@ -36,46 +40,47 @@ typedef struct char_symbols
     bool is_struct;
     bool is_external;
 
-    struct char_symbols * next
+    struct char_symbols *next;
     
 } char_symbols;
 
 /**Unique 32 base ASCII array*/
 
-char ASCII_symbol[ASCII_MAX_LENGTH_VALUE];
-ASCII_symbol[0] = '!';
-ASCII_symbol[1] = '@';
-ASCII_symbol[2] = '#';
-ASCII_symbol[3] = '$';
-ASCII_symbol[4] = '%';
-ASCII_symbol[5] = '^';
-ASCII_symbol[6] = '&';
-ASCII_symbol[7] = '*';
-ASCII_symbol[8] = '<';
-ASCII_symbol[9] = '>';
-ASCII_symbol[10] = 'a';
-ASCII_symbol[11] = 'b';
-ASCII_symbol[12] = 'c';
-ASCII_symbol[13] = 'd';
-ASCII_symbol[14] = 'e';
-ASCII_symbol[15] = 'f';
-ASCII_symbol[16] = 'g';
-ASCII_symbol[17] = 'h';
-ASCII_symbol[18] = 'i';
-ASCII_symbol[19] = 'j';
-ASCII_symbol[20] = 'k';
-ASCII_symbol[21] = 'l';
-ASCII_symbol[22] = 'm';
-ASCII_symbol[23] = 'n';
-ASCII_symbol[24] = 'o';
-ASCII_symbol[25] = 'p';
-ASCII_symbol[26] = 'q';
-ASCII_symbol[27] = 'r';
-ASCII_symbol[28] = 's';
-ASCII_symbol[29] = 't';
-ASCII_symbol[30] = 'u';
-ASCII_symbol[31] = 'v';
-
+char ASCII_symbol[ASCII_MAX_LENGTH_VALUE]
+{
+'!'
+,'@'
+,'#'
+,'$'
+,'%'
+,'^'
+,'&'
+,'*'
+,'<'
+,'>'
+,'a'
+,'b'
+,'c'
+,'d'
+,'e'
+,'f'
+,'g'
+,'h'
+,'i'
+,'j'
+,'k'
+,'l'
+,'m'
+,'n'
+,'o'
+,'p'
+,'q'
+,'r'
+,'s'
+,'t'
+,'u'
+,'v'
+};
 
 /** Addressing types */
 
@@ -151,12 +156,13 @@ typedef struct data
 } data;
 
 /** string decleration */
+
 typedef struct string
 {
     int dc;
     char temp_str[MAX_LINE_LENGTH];
     int length;
-    struct string *next
+    struct string *next;
 } string;
 
 /** Single source line */
