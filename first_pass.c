@@ -2,8 +2,8 @@
 #include "utils.h"
 #include "string.h"
 #include "stdbool.h"
-#define MOVE_TO_NOT_WHITE(string, index) \
-        for (;string[(index)] && (string[(index)] == '\t' || string[(index)] == ' '); (++(index)))\
+#define MOVE_TO_NOT_WHITE(string, index) {
+        for (;string[(index)] && (string[(index)] == '\t' || string[(index)] == ' '); (++(index)))}
         ;
 
 
