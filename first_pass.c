@@ -2,59 +2,126 @@
 #include "utils.h"
 #include "string.h"
 #include "stdbool.h"
-#define MOVE_TO_NOT_WHITE(string, index) {
-        for (;string[(index)] && (string[(index)] == '\t' || string[(index)] == ' '); (++(index)))}
-        ;
 
 
+/**
+ * get_machine_instruction_line - Get the machine instruction line object
+ * @param current_token 
+ * @param file_status 
+ * @param should_skip 
+ * @return machine_instruction_line* 
+ */
+machine_instruction_line *get_machine_instruction_line(char *current_token, status *file_status, bool *should_skip) {
+    machine_instruction *mi = NULL;
+    machine_instruction_line *mil = NULL;
+    int OP_counter = 0;
+    char * op;
+    char * op2;
+    if (!(mi = get_machine_instruction(current_token))) {
+        printf("undefined machine instruction", file_status,should_skip);
+        return NULL;
+    }
 
-bool is_valid_label_name(char *name) {
-	/* Check length, first char is alpha and all the others are alphanumeric, and not saved word */
-	return name[0] && strlen(name) <= 31 && isalpha(name[0]) && is_alphanumeric_str(name + 1);
-	       
+    mil = (machine_instruction_line *)safe_malloc(sizeof(machine_instruction_line));
+    mil->mi = mi;
+    mil->destination_operand = NULL;
+    mil->source_operand = NULL;
+
+    current_token = strtok(NULL, " ,\t\n");
+    if (!current_token) {
+        if (OP_counter == mi->amount_of_operands) {
+            return mil;
+        }
+        printf("Invalid Num of Operands", file_status, should_skip);
+        free(mil);
+        return NULL;
+    }
+
+    OP_counter++;
+    op = (char *)safe_malloc(sizeof(char ) * MAX_LINE_LENGTH);
+    strcpy(op, current_token);
+
+    current_token = strtok(NULL, " ,\t\n");
+    if (!current_token) {
+        if (OP_counter == mi->amount_of_operands) {
+            mil->destination_operand = op;
+            return mil;
+        }
+        printf("Invalid Num of Operands", file_status, should_skip);
+        free(op);
+        free(mil);
+        return NULL;
+    }
+
+    OP_counter++;
+    op2 = (char *)safe_malloc(sizeof(char ) * MAX_LINE_LENGTH);
+    strcpy(op2, current_token);
+
+    current_token = strtok(NULL, " ,\t\n");
+    if (!current_token) {
+        if (OP_counter == mi->amount_of_operands) {
+            mil->source_operand = op;
+            mil->destination_operand = op2;
+            return mil;
+        }
+        printf("Invalid Num of Operands", file_status, should_skip);
+        free(op);
+        free(op2);
+        free(mil);
+        return NULL;
+    }else {
+        printf("Too Many Operands", file_status, should_skip);
+        free(op);
+        free(op2);
+        free(mil);
+        return NULL;
+    }
+
+
 }
 
+addressing_types check_addressing_type(char *operand, char *record_symbol, unsigned int *register_num, int *immediate_num, status *file_status, bool *should_skip) {
+    int result = 0;
+    int reg = 0;
+    if(!operand) {
+        return NONE;
+    }
 
+    if (operand[0] == '#') {
+        char *end;
+        char *operand_cpy = operand;
+        operand_cpy++;
+        result = strtol(operand_cpy, &end, 10);
+        if (*end != '\0') {
+            printf("Invalid Number", file_status, should_skip);
+            return NONE;
+        }
+        IF ((result < INT8_MIN) || (result > INT8_MAX)) {
+            printf("Out Of Range");
+            return NONE;
+        }
+        *immediate_num = result;
+        return IMMEDIATE;
+    }
 
-bool find_label(line_info line, char *symbol_dest) {//this function checks if the label we have found is valid//
-	int j, i;
-	i = j = 0;
+    if ((reg = is_register(operand)) != -1) {
+        *register_num = reg;
+        return REGISTER;
+    }
 
-	/* Skip white chars at the beginning anyway */
-	MOVE_TO_NOT_WHITE(line.content, i)
+    if (is_record_addresing_type(operand, record_symbol, register_num, file_status, should_skip)) {
+        return RECORD;
+    } else if (*should_skip){
+        return NONE;
+    }
 
-	/* Let's allocate some memory to the string needed to be returned */
-	for (; line.content[i] && line.content[i] != ':' && line.content[i] != EOF && i <= MAX_LINE_LENGTH; i++, j++) {
-		symbol_dest[j] = line.content[i];
-	}
-	symbol_dest[j] = '\0'; /* End of string */
-
-	/* if it was a try to define label, print errors if needed. */
-	if (line.content[i] == ':') {
-		if (!is_valid_label_name(symbol_dest)) {
-			 fprintf(stderr, "Label name is invalid! must contain up to 30 charecters and can be only AlphaNumeric");
-			symbol_dest[0] = '\0';
-			return TRUE; /* No valid symbol, and no try to define one */
-		}
-		return FALSE;
-	}
-	symbol_dest[0] = '\0';
-	return FALSE; /* There was no error */
+    if (is_valid_label_name(operand, file_status, true,should_skip)) { /* check if operand is valid symbol name and return direct addressing mode */
+    return DIRECT;
+    }
+    return NONE;
 }
 
-bool is_alphanumeric_str(char *string) {
-	int i;
-	/*check for every char in string if it is non alphanumeric char if it is function returns true*/
-	for (i = 0; string[i]; i++) {
-		if (!isalpha(string[i]) && !isdigit(string[i])) return FALSE;
-	}
-	return TRUE;
 }
-
-
-
-
-
 
 void data_directive_parsing(char *current_token, status *file_status, bool *should_skip, int *DC) {
     bool expecting_comma = false; 
@@ -80,7 +147,7 @@ void string_directive_parsing(char *current_token, status *file_status, bool *sh
     while (current_token) {
         char *token_cpy;
         int token_len = strlen(current_token);
-        if ((!token_len <2 || ((current_token[token_len-1]) != '"')) {
+        if (!token_len <2 || ((current_token[token_len-1]) != '"')) {
             printf("Error");
             exit(1);
         } else {
@@ -123,7 +190,4 @@ bool instructions_directive_parsing(char *current_token, status *file_status, bo
     }
     return true;
 }
-
-
-
 

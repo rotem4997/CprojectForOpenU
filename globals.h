@@ -1,6 +1,8 @@
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
+#include "stdbool.h"
+
 #define MEMORY_MAX_SIZE 256 /* memory size */
 #define NUM_OF_REGISTERS 8 /* number of registers */
 #define NUM_OF_OPCODE 16 /* number of op code */
@@ -88,7 +90,7 @@ char ASCII_symbol[ASCII_MAX_LENGTH_VALUE]
 typedef enum addressing_types {
     IMMEDIATE = 0,
     DIRECT = 1,
-    RELATIVE = 2,
+    RECORD = 2,
     REGISTER = 3,
     NONE = -1
 } addressing_types;
