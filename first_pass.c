@@ -121,6 +121,106 @@ addressing_types check_addressing_type(char *operand, char *record_symbol, unsig
     return NONE;
 }
 
+bool analyse_operands_structure_of_machine_instruction(char *current_token, int *IC, status *file_status, bool *should_skip) {
+    int add_to_ic = 0;
+    word *first_word;
+    word *second_word = NULL;
+    word *immediate_word, *direct_word;
+    unsigned int absolute_t = ((1 << 2) & 0xff);
+
+    machine_instruction_line *mil;
+    if(!(mil = get_machine_instruction_line(current_token,file_status,should_skip))) {
+        return false;
+    }
+    first_word = new_word();
+    first_word->ocw = (op_code_word *)safe_malloc(sizeof(op_code_word));
+    first_word->ocw->op_code = (1 << mil->mi->opcode);
+    first_word->address = *IC;
+    add_to_ic++;
+
+    if (mil->source_operand != NULL) {
+        unsigned int register_num;
+        int immediate_num;
+        char index_symbol[MAX_LINE_LENGTH];
+        addressing_types source_addresing_types = analyse_addresssing_types(mil->source_operand, index_symbol, &register_num, &immediate_num, file_status, should_skip);
+
+        if (source_addresing_types == NONE) {
+            free_word_chain(first_word);
+            return false;
+        } else if (source_addresing_types == REGISTER) {
+            second_word->source_addressing_types= REGISTER;
+            second_word->source_registery == register_num;
+        } else if (source_addresing_types == RECORD) {
+            second_word->source_addressing_types = RECORD;
+            second_word->source_addressing_registery = register_num;
+            add_to_ic = add_to_ic+2;
+        } else if (source_addresing_types == IMMEDIATE) {
+             second_word->source_addressing_types = IMMEDIATE;
+            second_word->source_registery = 0;
+
+            immediate_word = new_word();
+            immediate_word->dlw = new_data_word(&absolute_t,&immediate_num, NULL);
+
+            push_word(first_word, immediate_word);
+            immediate_word->address = *IC + add_to_ic;
+            add_to_ic++;
+        } else {
+            second_word->source_addressing_types = DIRECT;
+            second_word->source_registery = 0;
+
+            direct_word = new_word();
+            direct_word->address = *IC + add_to_ic;
+
+            direct_word->dlw = new_data_word(NULL, NULL, mil->source_operand);
+            push_word(second_word, direct_word);
+            add_to_ic = add_to_ic+2;
+        }
+    }
+
+    if (mil->destination_operand != NULL) {
+        unsigned int register_num;
+        int immediate_num;
+        char index_symbol[MAX_LINE_LENGTH];
+        addressing_types dest_addresing_types = analyse_addresssing_types(mil->destination_operand,, index_symbol, &register_num, &immediate_num, file_status, should_skip);
+
+        if (dest_addresing_types == NONE) {
+            free_word_chain(first_word);
+            return false;
+        } else if (dest_addresing_types == REGISTER) {
+            second_word->destination_addresing_types= REGISTER;
+            second_word->destination_registery == register_num;
+        } else if (dest_addresing_types == RECORD) {
+            second_word->destination_addresing_types = RECORD;
+            second_word->destination_registery = register_num;
+            add_to_ic = add_to_ic+2;
+        } else if (dest_addresing_types == IMMEDIATE) {
+             second_word->destination_addressing_types = IMMEDIATE;
+            second_word->destination_registery = 0;
+
+            immediate_word = new_word();
+            immediate_word->dlw = new_data_word(&absolute_t,&immediate_num, NULL);
+
+            push_word(first_word, immediate_word);
+            immediate_word->address = *IC + add_to_ic;
+            add_to_ic++;
+        } else {
+            second_word->destination_addressing_types = DIRECT;
+            second_word->destination_registery = 0;
+
+            direct_word = new_word();
+            direct_word->address = *IC + add_to_ic;
+
+            direct_word->dlw = new_data_word(NULL, NULL, mil->destination_operand);
+            push_word(second_word, direct_word);
+            add_to_ic = add_to_ic+2;
+        }
+    }
+
+    if (!add_word_to_word_list(first_word)) {
+        printf("Cannot add word to the list", file_status);
+    }
+    (*IC) = (*IC)+add_to_ic;
+    return true;
 }
 
 void data_directive_parsing(char *current_token, status *file_status, bool *should_skip, int *DC) {
