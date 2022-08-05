@@ -181,7 +181,6 @@ typedef struct status { /* file status */
 typedef struct word {
     int address;
     op_code_word *ocw;
-    funct_details_word *fdw;
     data_word *dlw;
     struct word *next;
 } word;
@@ -203,5 +202,12 @@ typedef struct data_word {
     signed int data: 16;
     char *symbol_need_to_be_filled;
 } data_word;
+
+typedef struct machine_instruction_line {
+    machine_directive *md;
+    char *source_operand;
+    char *destination_operand;
+} machine_instruction_line;
+
 
 #endif
