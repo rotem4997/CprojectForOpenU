@@ -172,4 +172,36 @@ typedef struct line_info {
     char *content;
 } line_info;
 
+typedef struct status { /* file status */
+    char *file_name;
+    int line_number;
+    bool errors_flag;
+} status;
+
+typedef struct word {
+    int address;
+    op_code_word *ocw;
+    funct_details_word *fdw;
+    data_word *dlw;
+    struct word *next;
+} word;
+
+
+typedef struct entry {
+    char symbol_id[SYMBOL_MAX_LENGTH];
+    bool checked;
+    struct entry *next;
+} entry;
+
+typedef struct external {
+    char symbol_name[SYMBOL_MAX_LENGTH];
+    struct external * next;
+} external;
+
+typedef struct data_word {
+    unsigned int are : 3;
+    signed int data: 16;
+    char *symbol_need_to_be_filled;
+} data_word;
+
 #endif
