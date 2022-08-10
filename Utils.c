@@ -32,6 +32,8 @@ bool find_label(line_info line, char *symbol_dest) {//this function checks if th
 		}
 		return FALSE;
 	}
+
+	
 	symbol_dest[0] = '\0';
 	return FALSE; /* There was no error */
 }
