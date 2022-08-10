@@ -139,3 +139,11 @@ void get_opcode_func(char *cmd, PC_Commands *opcode_out, PC_Commands *funct_out)
 	}
 }
 
+bool is_valid_line(char *line, FILE *fp, status *file_status) {
+    if (strchr(line, '\n') == NULL && !feof(fp)) {
+        char err_msg[MAX_LINE_LENGTH];
+        sprintf(err_msg, "line maximum length is %d", MAX_LINE_LENGTH);
+        log_error_wrapper(err_msg, file_status,NULL);
+        return false;
+    }
+    return true;
