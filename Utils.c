@@ -1,4 +1,10 @@
 ///NEED TO DEFINE OPCODE FUNCTION check
+#include "globals.h"
+#include "stdbool.h"
+#include "string.h"
+#include "stdio.h"
+#include "utils.h"
+
 
 bool is_valid_label_name(char *name) {
 	/* Check length, first char is alpha and all the others are alphanumeric, and not saved word */
@@ -28,23 +34,21 @@ bool find_label(line_info line, char *symbol_dest) {//this function checks if th
 		if (!is_valid_label_name(symbol_dest)) {
 			 fprintf(stderr, "Label name is invalid! must contain up to 30 charecters and can be only AlphaNumeric");
 			symbol_dest[0] = '\0';
-			return TRUE; /* No valid symbol, and no try to define one */
+			return true; /* No valid symbol, and no try to define one */
 		}
-		return FALSE;
+		return false;
 	}
-
-	
 	symbol_dest[0] = '\0';
-	return FALSE; /* There was no error */
+	return false; /* There was no error */
 }
 
 bool is_alphanumeric_str(char *string) {
 	int i;
 	/*check for every char in string if it is non alphanumeric char if it is function returns true*/
 	for (i = 0; string[i]; i++) {
-		if (!isalpha(string[i]) && !isdigit(string[i])) return FALSE;
+		if (!isalpha(string[i]) && !isdigit(string[i])) return false;
 	}
-	return TRUE;
+	return true;
 }
 
 bool is_reserved_word(char *name) {
@@ -53,7 +57,7 @@ bool is_reserved_word(char *name) {
 	get_opcode_func(name, &opc, (funct *) &fun);
 	if (opc != NONE_OP || get_register_by_name(name) != NONE_REG || find_instruction_by_name(name) != NONE_INST) return TRUE;
 
-	return FALSE;
+	return false;
 }
 
 reg get_register_by_name(char *name) {
@@ -75,7 +79,7 @@ instruction find_instruction_by_name(char *name) {
 	return NONE_INST;
 }
 /////////Adresing method - need to build the LOG_ERROR_WRAPPER/////
-addressing_mode analyse_addressing_mode(char *operand, char *index_symbol, unsigned int *register_num, int *immediate_num , status *file_status, bool *should_skip){
+addressing_types analyse_addressing_mode(char *operand, char *index_symbol, unsigned int *register_num, int *immediate_num , status *file_status, bool *should_skip){
     int result = 0; /* immediate number initialize */
     int reg = 0; /* registry number initialize */
     if(!operand){ /* if the operand is empty return null */
@@ -92,7 +96,7 @@ addressing_mode analyse_addressing_mode(char *operand, char *index_symbol, unsig
             return NONE;
         }
 
-        if ((result < INT16_MIN) || (result > INT16_MAX)) { /* if immediate number is out of range (16 signed int) return error */
+        if ((result < INT8_MIN) || (result > INT8_MAX)) { /* if immediate number is out of range (16 signed int) return error */
             log_error_wrapper("out of range", file_status,should_skip);
             return NONE;
         }
@@ -103,14 +107,14 @@ addressing_mode analyse_addressing_mode(char *operand, char *index_symbol, unsig
 
     if ((reg = is_register(operand)) != -1) { /* check if operand is registry and if so, set registry number*/
         *register_num = reg;
-        return REGISTER_DIRECT;
+        return DIRECT;
     }
 
-    if(is_index_addressing_mode(operand, index_symbol,register_num, file_status, should_skip)) { /* check if operand is index and if so, set index_symbol and register_num */
-        return INDEX;
-    } else if (*should_skip){
-        return NONE;
-    }
+    // if(is_index_addressing_mode(operand, index_symbol,register_num, file_status, should_skip)) { /* check if operand is index and if so, set index_symbol and register_num */
+    //     return INDEX;
+    // } else if (*should_skip){
+    //     return NONE;
+    // }
 
     if (is_valid_symbol_name(operand, file_status, true,should_skip)) { /* check if operand is valid symbol name and return direct addressing mode */
         return DIRECT;
@@ -141,11 +145,79 @@ void get_opcode_func(char *cmd, PC_Commands *opcode_out, PC_Commands *funct_out)
 	}
 }
 
-bool is_valid_line(char *line, FILE *fp, status *file_status) {
-    if (strchr(line, '\n') == NULL && !feof(fp)) {
-        char err_msg[MAX_LINE_LENGTH];
-        sprintf(err_msg, "line maximum length is %d", MAX_LINE_LENGTH);
-        log_error_wrapper(err_msg, file_status,NULL);
-        return false;
-    }
-    return true;
+
+bool process_string_instruction(line_info line, int index, long *data_img, long *dc) {
+	char temp_str[MAX_LINE_LENGTH];
+	char *last_quote_location = strrchr(line.content, '"');
+	MOVE_TO_NOT_WHITE(line.content, index)
+	if (line.content[index] != '"') {
+		/* something like: LABEL: .string  hello, world\n - the string isn't surrounded with "" */
+		printf_line_error(line, "Missing opening quote of string");
+		return false;
+	} else if (&line.content[index] == last_quote_location) { /* last quote is same as first quote */
+		printf_line_error(line, "Missing closing quote of string");
+		return false;
+	} else {
+		int i;
+		/* Copy the string including quotes & everything until end of line */
+		for (i = 0;line.content[index] && line.content[index] != '\n' &&
+		       line.content[index] != EOF; index++,i++) {
+				temp_str[i] = line.content[index];
+		}
+		/* Put string terminator instead of last quote: */
+		temp_str[last_quote_location - line.content] = '\0';
+		for(i = 1;temp_str[i] && temp_str[i] != '"'; i++) {
+			/* sort of strcpy but with dc increment */
+			data_img[*dc] = temp_str[i];
+			(*dc)++;
+		}
+		/* Put string terminator */
+		data_img[*dc] = '\0';
+		(*dc)++;
+	}
+	/* Return processed chars count */
+	return true;
+}
+
+bool process_data_instruction(line_info line, int index, long *data_img, long *dc) {
+	char temp[80], *temp_ptr;
+	long value;
+	int i;
+	MOVE_TO_NOT_WHITE(line.content, index)
+	if (line.content[index] == ',') {
+		printf_line_error(line, "Unexpected comma after .data instruction");
+	}
+	do {
+		for (i = 0;
+		     line.content[index] && line.content[index] != EOF && line.content[index] != '\t' &&
+		     line.content[index] != ' ' && line.content[index] != ',' &&
+		     line.content[index] != '\n'; index++, i++) {
+			temp[i] = line.content[index];
+		}
+		temp[i] = '\0'; /* End of string */
+		if (!is_int(temp)) {
+			printf_line_error(line, "Expected integer for .data instruction (got '%s')", temp);
+			return false;
+		}
+		/* Now let's write to data buffer */
+		value = strtol(temp, &temp_ptr, 10);
+
+		data_img[*dc] = value;
+
+		(*dc)++; /* a word was written right now */
+		MOVE_TO_NOT_WHITE(line.content, index)
+		if (line.content[index] == ',') index++;
+		else if (!line.content[index] || line.content[index] == '\n' || line.content[index] == EOF)
+			break; /* End of line/file/string => nothing to process anymore */
+		/* Got comma. Skip white chars and check if end of line (if so, there's extraneous comma!) */
+		MOVE_TO_NOT_WHITE(line.content, index)
+		if (line.content[index] == ',') {
+			printf_line_error(line, "Multiple consecutive commas.");
+			return false;
+		} else if (line.content[index] == EOF || line.content[index] == '\n' || !line.content[index]) {
+			printf_line_error(line, "Missing data after comma");
+			return false;
+		}
+	} while (line.content[index] != '\n' && line.content[index] != EOF);
+	return true;
+}

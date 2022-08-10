@@ -96,7 +96,7 @@ addressing_types check_addressing_type(char *operand, char *record_symbol, unsig
             printf("Invalid Number", file_status, should_skip);
             return NONE;
         }
-        IF ((result < INT8_MIN) || (result > INT8_MAX)) {
+        if ((result < INT8_MIN) || (result > INT8_MAX)) {
             printf("Out Of Range");
             return NONE;
         }
@@ -110,7 +110,7 @@ addressing_types check_addressing_type(char *operand, char *record_symbol, unsig
     }
 
     if (is_record_addresing_type(operand, record_symbol, register_num, file_status, should_skip)) {
-        return RECORD;
+        return RELATIVE;
     } else if (*should_skip){
         return NONE;
     }
@@ -150,8 +150,8 @@ bool analyse_operands_structure_of_machine_instruction(char *current_token, int 
         } else if (source_addresing_types == REGISTER) {
             second_word->source_addressing_types= REGISTER;
             second_word->source_registery == register_num;
-        } else if (source_addresing_types == RECORD) {
-            second_word->source_addressing_types = RECORD;
+        } else if (source_addresing_types == RELATIVE) {
+            second_word->source_addressing_types = RELATIVE;
             second_word->source_addressing_registery = register_num;
             add_to_ic = add_to_ic+2;
         } else if (source_addresing_types == IMMEDIATE) {
@@ -189,8 +189,8 @@ bool analyse_operands_structure_of_machine_instruction(char *current_token, int 
         } else if (dest_addresing_types == REGISTER) {
             second_word->destination_addresing_types= REGISTER;
             second_word->destination_registery == register_num;
-        } else if (dest_addresing_types == RECORD) {
-            second_word->destination_addresing_types = RECORD;
+        } else if (dest_addresing_types == RELATIVE) {
+            second_word->destination_addresing_types = RELATIVE;
             second_word->destination_registery = register_num;
             add_to_ic = add_to_ic+2;
         } else if (dest_addresing_types == IMMEDIATE) {
@@ -291,127 +291,3 @@ bool instructions_directive_parsing(char *current_token, status *file_status, bo
     return true;
 }
 
-
-bool is_directive(char *current_token, status *file_status, bool *should_skip, char *new_symbol, int *DC) {
-    if (current_token[0] != '.') { /* if current word doesn't start with ., it's not a directive*/
-        return false;
-    }
-    if (!strcmp(current_token, DATA_CODE_DIRECTIVE)) { /* check if data directive and if so, validate and parse*/
-        if (new_symbol) {
-            if (!add_symbol_to_symbol_table(new_symbol, *DC, false, false, false, true, file_status)){
-                *should_skip = true;
-                return false;
-            }
-        }
-        current_token = strtok(NULL, " \t\n");
-        if (!current_token) {
-            log_error_wrapper("data directive cannot be empty!", file_status,should_skip);
-            return false;
-        }
-        return data_directive_parsing(current_token, file_status, should_skip, DC);
-    } else if (!strcmp(current_token, STRING_CODE_DIRECTIVE)) { /* check if string directive and if so, validate and parse*/
-        if (new_symbol) {
-            if (!add_symbol_to_symbol_table(new_symbol, *DC, false, false, false, true, file_status)){
-                *should_skip = true;
-                return false;
-            }
-        }
-        current_token = strtok(NULL, "\n");
-        if (!current_token) {
-            log_error_wrapper("sting directive cannot be empty!", file_status,should_skip);
-            return false;
-        }
-        return string_directive_parsing(current_token, file_status, should_skip, DC);
-    } else if (!strcmp(current_token, EXTERN_CODE_DIRECTIVE)) { /* check if data directive and if so, validate and parse */
-        current_token = strtok(NULL, "\n");
-        if (!current_token) {
-            log_error_wrapper("extern directive cannot be empty!", file_status,should_skip);
-            return false;
-        }
-        if (!is_valid_symbol_name(current_token,file_status,true,should_skip)) {
-            return false;
-        }
-        if (!add_symbol_to_symbol_table(current_token, 0, true, false, false, false, file_status)){
-            *should_skip = true;
-            return false;
-        }
-        return true;
-    } else if (!strcmp(current_token, ENTRY_CODE_DIRECTIVE)) { /* check if entry directive and if so, add to entry list */
-        /* instead of reading the file lines again and look for entries in the second pass
-         * the entries saved to entries linked list and then, in the second pass the code iterate through this list
-         * instead of reading the file again.
-         * */
-        current_token = strtok(NULL, "\n");
-        if (!current_token) {
-            log_error_wrapper("entry directive cannot be empty!", file_status,should_skip);
-            return false;
-        }
-        if (!is_valid_symbol_name(current_token,file_status,true,should_skip)) { /* validate entry symbol name*/
-            return false;
-        }
-        add_entry(current_token);
-        return true;
-    } else {
-        log_error_wrapper("this code directive is not supported", file_status,should_skip); /* invalid directive*/
-        return false;
-    }
-}
-
-
-
-void first_pass(FILE *file_to_read,int *IC, int *DC, status *file_status) {
-    char line[MAX_LINE_LENGTH]; /* line string */
-    char *current_token = NULL; /* current word of the line */
-    char *new_symbol = NULL; /* symbol pointer */
-    bool should_skip = false; /* should skip current line flag */
-    char line_copy[MAX_LINE_LENGTH]; /* declaration of line copy */
-
-    while (fgets(line, MAX_LINE_LENGTH, file_to_read)) { /* read new line from file */
-        file_status->line_number++; /* increase line number in file status */
-        should_skip = false; /* reset should skip line status */
-
-        strcpy(line_copy, line);
-        if (!is_valid_line(line_copy, file_to_read, file_status)) { /* check if line is valid*/
-            continue;
-        }
-        new_symbol = NULL;
-        current_token = strtok(line_copy, " \t\n");
-        if (!current_token || !strcmp(current_token, ";")) { /* if comment or empty line, skip current line */
-            continue;
-        }
-
-        if (is_new_symbol(current_token, file_status, &should_skip, new_symbol)) { /* look for new symbol, and if exist set current symbol pointer to  parsed symbol*/
-            new_symbol = current_token;
-            current_token = strtok(NULL, " \t\n"); /* move to next word*/
-            if (!current_token) { /* if there is no word after symbol, return error */
-                log_error_wrapper("symbol must be assigned with value", file_status,NULL);
-                continue;
-            }
-        } else if (should_skip) { /*if should skip current line due to error, continue */
-            continue;
-        }
-
-        if (is_directive(current_token, file_status, &should_skip, new_symbol, DC) || should_skip) { /* check if its a directive line and if so and the directive parsed correctly or error found, continue */
-            continue;
-        }
-
-        if (new_symbol) { /* if it's not a directive, its must be machine directive, so first check if there is symbol and if so save it to symbol list*/
-            if (!add_symbol_to_symbol_table(new_symbol, *IC, false, true, false, false, file_status)){
-                continue;
-            }
-        }
-
-        if (!analyse_operands_structure_of_machine_directive(current_token,IC,file_status,&should_skip)){ /* parse machine directive line and continue if there is error, continue */
-            continue;
-        }
-    }
-    if (file_status->errors_flag) { /* if errors found in the first pass, log that error found and skip file */
-        fprintf(stderr,"error found in first pass, skipping file!\n" );
-        return;
-    }
-    add_ic_to_data_symbols(*IC); /* update data symbol addresses with final ic */
-    if((*IC)+(*DC) > MEMORY_MAX_SIZE) { /* check if code memory reached limit */
-        log_error_wrapper("out of memory!" , file_status,&should_skip);
-    }
-    fprintf(stdout, "first pass of %s finished successfully\n", file_status->file_name);
-}
