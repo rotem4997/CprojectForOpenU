@@ -26,10 +26,11 @@ void second_pass(status *file_status) {
             log_error_without_line_wrapper(error_msg,file_status,NULL );
             entry_it->checked = true;/* mark as checked*/
         }else { /* else */
-            int offset = s_pointer->value %32;
+            int offset = s_pointer->value %16;
             s_pointer->is_entry = true; /* set  symbol as entry */
             entry_it->checked = true; /* mark as checked*/
-            
+            entry_it->offset = offset;
+            entry_it->base = s_pointer->value - offset;
         }
     }
 
@@ -53,8 +54,9 @@ void second_pass(status *file_status) {
             } else {
                 int offset = s_pointer->value %16;
                 word_it->dlw->are = ((1<<1) &0xFF);
+                word_it->dlw->data= s_pointer->value - offset;
                 word_it->next->dlw->are = ((1<<1) &0xFF);
-                
+                word_it->next->dlw->data = offset;
             }
             free(word_it->dlw->symbol_need_to_be_filled);
             word_it->dlw->symbol_need_to_be_filled = NULL;
