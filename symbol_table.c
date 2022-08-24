@@ -1,4 +1,8 @@
-#include <globals.h>
+#include "globals.h"
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 
 static symbol *symbol_table_head = NULL;
 

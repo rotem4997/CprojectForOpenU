@@ -1,10 +1,8 @@
 all: assembler
 
-assembler: globals.o data_list.o entry_list.o files.o first_pass.o macro_list.o pre_assembly.o Second_pass.o symbol_table.o utils.o word_list.o external_list.o main.o
+assembler: data_list.o entry_list.o file_handling.o first_pass.o macro_list.o pre_assembly.o Second_pass.o symbol_table.o utils.o word_list.o external_list.o main.o
 	gcc -g -ansi -Wall -pedantic globals.o data_list.o entry_list.o file_handling.o first_pass.o macro_list.o pre_assembly.o Second_pass.o symbol_table.o utils.o word_list.o external_list.o main.o -lm -o assembler
 
-globals.o: globals.c
-	gcc -c -ansi -Wall -pedantic globals.c -o globals.o
 
 data_list.o: data_list.c
 	gcc -c -ansi -Wall -pedantic data_list.c -o data_list.o
@@ -18,7 +16,7 @@ file_handling.o: file_handling.c
 first_pass.o: first_pass.c
 	gcc -c -ansi -Wall -pedantic first_pass.c -o first_pass.o
 
-macro_list.o: macro_list.c
+macro_list.o: Macro_list.c
 	gcc -c -ansi -Wall -pedantic macro_list.c -o macro_list.o
 
 pre_assembly.o: pre_assembly.c
@@ -30,7 +28,7 @@ pre_assembly.o: pre_assembly.c
 symbol_table.o: symbol_table.c
 	gcc -c -ansi -Wall -pedantic symbol_table.c -o symbol_table.o
 
-utils.o: utils.c
+utils.o: Utils.c
 	gcc -c -ansi -Wall -pedantic utils.c -o utils.o
 
 external_list.o: external_list.c

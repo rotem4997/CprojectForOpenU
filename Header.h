@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "structs.h"
+#include "globals.h"
 
 
 /* first pass function */

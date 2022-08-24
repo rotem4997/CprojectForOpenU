@@ -1,4 +1,8 @@
-#include <globals.h>
+#include "globals.h"
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 
 macro * macro_list_head = NULL;
 

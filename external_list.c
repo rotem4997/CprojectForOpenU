@@ -1,3 +1,8 @@
+#include "globals.h"
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 static external *external_list = NULL;
 
 

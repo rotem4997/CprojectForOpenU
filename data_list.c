@@ -1,5 +1,8 @@
-#include <globals.h>
-///TODO ADD FUNC for find label for DATA, STRING etc.///
+#include "globals.h"
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 static data *data_list_head = NULL;
  char error_msg[MAX_LINE_LENGTH]; 
 
@@ -39,4 +42,3 @@ void free_data_list(){
     data_list_head = NULL;
 }
 
-void string_instruction(int ic, )

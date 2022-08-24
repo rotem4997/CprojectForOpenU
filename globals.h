@@ -22,12 +22,7 @@
 #define MAX_LINE_LENGTH 80 /* Maximum length of a source of a single line */
 
 
-/** Boolean definition true or false */
-// typedef enum bool 
-// {
-//     FALSE = 0,
-//     TRUE = 1
-// } bool;
+
 
 /**symbol declration*/
 typedef struct char_symbols
@@ -47,7 +42,7 @@ typedef struct char_symbols
 
 /**Unique 32 base ASCII array*/
 
-char ASCII_symbol[ASCII_MAX_LENGTH_VALUE] {
+char ASCII_symbol[ASCII_MAX_LENGTH_VALUE]={
 '!'
 ,'@'
 ,'#'
@@ -185,7 +180,6 @@ typedef struct op_code_word {
 typedef struct word {
     int address;
     op_code_word *ocw;
-    data_word *dlw;
     struct word *next;
 } word;
 

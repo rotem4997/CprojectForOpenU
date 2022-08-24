@@ -1,6 +1,7 @@
-/**
- * second pass functions
- */
+#include "globals.h"
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "headers.h"
 #include "consts.h"
 

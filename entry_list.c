@@ -1,3 +1,10 @@
+#include "globals.h"
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+
 static entry * entry_list_head = NULL;
 
 

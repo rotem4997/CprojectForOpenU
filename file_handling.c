@@ -1,11 +1,8 @@
-/**
- * files functions
- */
-
+#include "globals.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "headers.h"
+#include "Header.h"
 
 
 /* concat file name with file extension */
