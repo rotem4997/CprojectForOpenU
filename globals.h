@@ -220,5 +220,11 @@ typedef struct macro{
 }macro;
 
 
+typedef struct word_details {
+    unsigned int source_registry :4;
+    unsigned int source_addressing_types :2;
+    unsigned int destination_registry :4;
+    unsigned int destination_addressing_types :2;
+} word_details;
 
 #endif
