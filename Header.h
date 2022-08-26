@@ -14,7 +14,7 @@ void first_pass(FILE *file_to_read,int *IC, int *DC, status *file_status);
 bool insert_num(char *current_num, int i, status *file_status, int *DC);
 bool data_directive_parsing(char *current_token, status *file_status, bool *should_skip, int *DC);
 bool string_directive_parsing (char *current_token, status *file_status, bool *should_skip, int *DC);
-bool instructions_directive_parsing(char *current_token, status *file_status, bool *should_skip, int *DC);
+bool instructions_directive_parsing(char *current_token, status *file_status, char *new_symbol,bool *should_skip, int *DC) ;
 machine_instruction_line *get_machine_instruction_line(char *current_token, status *file_status, bool *should_skip);
 bool is_relative_addressing_type (char *operand, char *symbol_name ,unsigned int *register_num, status *file_status, bool *should_skip);
 addressing_types check_addressing_types(char *operand, char *index_symbol, unsigned int *register_num, int *immediate_num , status *file_status, bool *should_skip);

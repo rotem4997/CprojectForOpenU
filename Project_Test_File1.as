@@ -1,21 +1,17 @@
 ; Project_Test_File1.as
-.entry LOOP
-.entry LENGTH
+
+
 .extern L3
 .extern W
 MAIN:	mov S1.1, W
+		move S2.1, w
 		add r2,STR
-LOOP: 	jmp W
-		macro m1
 		inc K
-			
 		mov S1.2 ,r3
-		endmacro
 		prn #-5
 		sub r1, r4
-		m1
 		bne L3
-END:	hlt
+END:	rts
 STR:	.string "abcdef"
 LENGTH:	.data 6,-9,15
 K:		.data 22

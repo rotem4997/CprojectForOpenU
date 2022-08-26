@@ -2,7 +2,8 @@
 #define PREPROCESSOR_H
 #include <string.h>
 #include <stdlib.h>
-#include "global.h"
+#include <stdio.h>
+#include "utils.h"
 #define MACROSTART "macro"
 #define MACROEND "endmacro"
 
