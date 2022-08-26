@@ -7,19 +7,21 @@
 
 static char_symbols *symbol_table_head = NULL;
 
-char_symbols *add_symbol_to_table(char* symbol_id, int value, bool is_data, bool is_string, bool is_entry, bool is_struct, bool is_external,status *file_stauts){
+char_symbols *add_symbol_to_table(char* symbol_id, int value, bool is_data, bool is_string, bool is_entry, bool is_struct, bool is_external,status *file_status){
  char_symbols *new = NULL;
+ char err_msg[MAX_LINE_LENGTH]; 
 
- if(new = get_symbol(symbol_id)){
+ if(new = get_symbol_by_id(symbol_id)){
      if(is_external && new->is_external){
          return new;
      }
-    printf("Cannot add symbol, symbol already exists\n", symbol_id);
+    sprintf(err_msg, "cannot add new symbol %s, symbol already exist", symbol_id);
+    log_error_wrapper(err_msg,file_status,NULL);
     return NULL;
  }
     new = malloc(sizeof(char_symbols));
     if(new == NULL){
-    printf("Could not allocate memory for symbol", symbol_id);
+    log_panic_wrapper("could not allocate memory",file_status);
     exit(1);    
     }   
     strcpy(new->symbol_id, symbol_id);

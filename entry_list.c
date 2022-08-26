@@ -82,5 +82,12 @@ entry *get_entries_list_head() {
     return it;
 }
 
+void print_entries_to_file(FILE * file_to_write) {
+    entry * it = entry_list_head;
+    while (it){ /* for each external */
+        fprintf(file_to_write, "%s\n",  it->symbol_id);
+        it = it->next;
+    }
+}
 
 

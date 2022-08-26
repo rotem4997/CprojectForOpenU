@@ -9,16 +9,15 @@
 #include <string.h>
 #include "globals.h"
 
-
 /* first pass function */
 void first_pass(FILE *file_to_read,int *IC, int *DC, status *file_status);
 bool insert_num(char *current_num, int i, status *file_status, int *DC);
 bool data_directive_parsing(char *current_token, status *file_status, bool *should_skip, int *DC);
 bool string_directive_parsing (char *current_token, status *file_status, bool *should_skip, int *DC);
-bool is_directive(char *current_token, status *file_status, bool *should_skip, char *new_symbol, int *DC);
+bool instructions_directive_parsing(char *current_token, status *file_status, bool *should_skip, int *DC);
 machine_instruction_line *get_machine_instruction_line(char *current_token, status *file_status, bool *should_skip);
-bool is_index_addressing_mode(char *operand, char *symbol_name ,unsigned int *register_num, status *file_status, bool *should_skip);
-addressing_types analyse_addressing_types(char *operand, char *index_symbol, unsigned int *register_num, int *immediate_num , status *file_status, bool *should_skip);
+bool is_relative_addressing_type (char *operand, char *symbol_name ,unsigned int *register_num, status *file_status, bool *should_skip);
+addressing_types check_addressing_types(char *operand, char *index_symbol, unsigned int *register_num, int *immediate_num , status *file_status, bool *should_skip);
 bool analyse_operands_structure_of_machine_directive(char *current_token, int *IC, status *file_status, bool *should_skip);
 /* second pass functions */
 void second_pass(status *file_status);
@@ -29,7 +28,7 @@ FILE * read_file_with_extension(char *file_name, char *ext, char *modes);
 void create_ob_file(char *file_name,int IC, int DC);
 
 /* pre assembler function */
-void pre_assembler(FILE *file_to_read, char *file_name,status *file_status);
+void pre_assembler(FILE *file_to_read, char *file_name, status *file_status);
 
 /* macro's linked list functions*/
 macro *add_macro(char *macro_id);
@@ -37,8 +36,7 @@ macro *get_macro_by_id(char *macro_id);
 void free_macro_list();
 
 /* symbol table functions*/
-char_symbols *add_symbol_to_symbol_table(char *symbol_id, int value, bool is_external , bool is_code, bool is_entry , bool is_data,
-                                   status *file_status);
+char_symbols *add_symbol_to_table(char* symbol_id, int value, bool is_data, bool is_string, bool is_entry, bool is_struct, bool is_external,status *file_status);
 char_symbols *get_symbol_by_id(char *symbol_id);
 void free_symbol_table();
 void display_symbol_list();
@@ -63,6 +61,7 @@ word *new_word();
 data_word *new_data_word(unsigned int *are , int *value , char *init_missing_symbol, data_word t);
 bool add_word_to_word_list(word *new);
 word *get_next_missing_symbol_word();
+void print_words_to_file(FILE * file_to_write);
 void free_op_code_word( op_code_word *word);
 void free_data_word( data_word *word);
 void free_word_chain(word * head);
@@ -97,4 +96,6 @@ void free_externals_list();
 
 instruction find_instruction_by_name(char *name);
 bool is_alphanumeric_str(char *string);
+
+
 #endif /*C_ASSEMBLER_HEADERS_H*/

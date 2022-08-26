@@ -6,11 +6,69 @@
 #include <stdbool.h>
 #include <string.h>
 
+void log_panic_wrapper(char *err, status *file_status) {
+    char error_msg[MAX_LOG_SIZE];
+    sprintf(error_msg, ERROR_WRAPPER, file_status->file_name, file_status->line_number, err);
+    fprintf(stderr, "%s", error_msg);
+    exit(1);
+}
+
+/**
+ * log error and update file status. set should skip if exist
+ * @param err
+ * @param file_status
+ * @param should_skip
+ */
+void log_error_wrapper(char *err, status *file_status,bool *should_skip) {
+    char error_msg[MAX_LOG_SIZE];
+    if (should_skip != NULL) {
+        *should_skip = true;
+    }
+    file_status->errors_flag = true;
+    sprintf(error_msg, ERROR_WRAPPER, file_status->file_name, file_status->line_number, err);
+    fprintf(stderr,"%s" ,error_msg);
+}
+
+
+/**
+ * log error without line and update file status. set should skip if exist
+ * @param err
+ * @param file_status
+ * @param should_skip
+ */
+void log_error_without_line_wrapper(char *err, status *file_status,bool *should_skip) {
+    char error_msg[MAX_LOG_SIZE];
+    if (should_skip != NULL) {
+        *should_skip = true;
+    }
+    file_status->errors_flag = true;
+    sprintf(error_msg, ERROR_WRAPPER_NO_LINE, file_status->file_name, err);
+    fprintf(stderr,"%s" ,error_msg);
+}
+
+void free_linked_lists(){
+    free_symbol_table();
+    free_word_list();
+    free_macro_list();
+    free_entry_list();
+    free_data_list();
+    free_externals_list();
+}
 
 bool is_valid_label_name(char *name) {
 	/* Check length, first char is alpha and all the others are alphanumeric, and not saved word */
 	return name[0] && strlen(name) <= 31 && isalpha(name[0]) && is_alphanumeric_str(name + 1) &&
 	       !is_reserved_word(name);
+}
+
+machine_instruction *get_machine_instruction(char *current_token) {
+    int i;
+    for (i = 0; i < NUM_OF_OPCODE ; i++) {
+        if (!strcmp(current_token, machine_instructions[i].name)) {
+            return &machine_instructions[i];
+        }
+    }
+    return NULL;
 }
 
 #define MOVE_TO_NOT_WHITE(string, index) \
@@ -53,14 +111,6 @@ bool is_alphanumeric_str(char *string) {
 }
 
 
-registers get_register_by_name(char *name) {
-	if (name[0] == 'r' && isdigit(name[1]) && name[2] == '\0') {
-		int digit = name[1] - '0'; /* convert digit ascii char to actual single digit */
-		if (digit >= 0 && digit <= 7) return digit;
-	}
-	return NONE_REG; /* No match */
-}
-
 struct instruction_lookup_item {
 	char *name;
 	instruction value;
@@ -85,45 +135,24 @@ instruction find_instruction_by_name(char *name) {
 	return NONE_INST;
 }
 
-addressing_types analyse_addressing_types(char *operand, char *index_symbol, unsigned int *register_num, int *immediate_num , status *file_status, bool *should_skip){
-    int result = 0; /* immediate number initialize */
-    int reg = 0; /* registry number initialize */
-    if(!operand){ /* if the operand is empty return null */
-        return NONE;
-    }
-
-    if (operand[0] == '#'){ /* if the operand starts with #, check for immediate addressing mode */
-        char *end;
-        char *operand_cpy = operand;
-        operand_cpy++;
-        result = strtol(operand_cpy, &end, 10); /* get immediate number and look for valid number*/
-        if (*end != '\0') {
-            log_error_wrapper("invalid number", file_status,should_skip);
-            return NONE;
-        }
-
-        if ((result < INT8_MIN) || (result > INT8_MAX)) { /* if immediate number is out of range (16 signed int) return error */
-            log_error_wrapper("out of range", file_status,should_skip);
-            return NONE;
-        }
-        *immediate_num = result; /* set immediate number with the parsed value*/
-        return IMMEDIATE;
-    }
-
-
-    if ((reg = is_register(operand)) != -1) { /* check if operand is registry and if so, set registry number*/
-        *register_num = reg;
-        return DIRECT;
-    }
-
-
-    if (is_valid_symbol_name(operand, file_status, true,should_skip)) { /* check if operand is valid symbol name and return direct addressing mode */
-        return DIRECT;
-    }
-    return NONE;
+void *safe_malloc(size_t n) {
+	void *p = malloc(n);
+	if (p == NULL) {
+		printf("FATAL: failed to aloocate memory.\n");
+		exit(1);
+	}
+	return p;
 }
 
-
+bool is_valid_line(char *line, FILE *fp, status *file_status) {
+    if (strchr(line, '\n') == NULL && !feof(fp)) {
+        char err_msg[MAX_LINE_LENGTH];
+        sprintf(err_msg, "line maximum length is %d", MAX_LINE_LENGTH);
+        printf("Error 1", file_status);
+        return false;
+    }
+    return true;
+}
 
 bool process_string_instruction(line_info line, int index, long *data_img, long *dc) {
 	char temp_str[MAX_LINE_LENGTH];
@@ -131,10 +160,10 @@ bool process_string_instruction(line_info line, int index, long *data_img, long 
 	MOVE_TO_NOT_WHITE(line.content, index)
 	if (line.content[index] != '"') {
 		/* something like: LABEL: .string  hello, world\n - the string isn't surrounded with "" */
-		printf_line_error(line, "Missing opening quote of string");
+		printf("Missing opening quote of string", line);
 		return false;
 	} else if (&line.content[index] == last_quote_location) { /* last quote is same as first quote */
-		printf_line_error(line, "Missing closing quote of string");
+		printf("Missing closing quote of string", line);
 		return false;
 	} else {
 		int i;
@@ -164,7 +193,7 @@ bool process_data_instruction(line_info line, int index, long *data_img, long *d
 	int i;
 	MOVE_TO_NOT_WHITE(line.content, index)
 	if (line.content[index] == ',') {
-		printf_line_error(line, "Unexpected comma after .data instruction");
+		printf("Unexpected comma after .data instruction", line);
 	}
 	do {
 		for (i = 0;
@@ -174,8 +203,8 @@ bool process_data_instruction(line_info line, int index, long *data_img, long *d
 			temp[i] = line.content[index];
 		}
 		temp[i] = '\0'; /* End of string */
-		if (!is_int(temp)) {
-			printf_line_error(line, "Expected integer for .data instruction (got '%s')", temp);
+		if (!isdigit(temp)) {
+			printf("Expected integer for .data instruction (got '%s')", line, temp);
 			return false;
 		}
 		/* Now let's write to data buffer */
@@ -191,12 +220,134 @@ bool process_data_instruction(line_info line, int index, long *data_img, long *d
 		/* Got comma. Skip white chars and check if end of line (if so, there's extraneous comma!) */
 		MOVE_TO_NOT_WHITE(line.content, index)
 		if (line.content[index] == ',') {
-			printf_line_error(line, "Multiple consecutive commas.");
+			printf("Multiple consecutive commas.", line);
 			return false;
 		} else if (line.content[index] == EOF || line.content[index] == '\n' || !line.content[index]) {
-			printf_line_error(line, "Missing data after comma");
+			printf("Missing data after comma", line);
 			return false;
 		}
 	} while (line.content[index] != '\n' && line.content[index] != EOF);
 	return true;
 }
+
+int is_register(char *current_token) {
+    int i;
+    for (i = 0; i < NUM_OF_REGISTERS; i++) {
+        if (!strcmp(current_token, registers[i])) {
+            return i;
+        }
+    }
+    return -1;
+}
+/**
+ * check if current token is register or op code
+ * @param current_token - current word
+ * @return if is reserverd word
+ */
+bool is_reserved_word(char *current_token) {
+    return (get_machine_instruction (current_token) || (is_register(current_token) != -1));
+}
+
+/**
+ * check if current word is a valid symbol name
+ * @param current_token - current word
+ * @param file_status - file status object
+ * @param should_log - should log error flag
+ * @param should_skip - should skip line flag
+ * @return if its a valid symbol name
+ */
+bool is_valid_symbol_name(char *current_token, status *file_status,bool should_log, bool *should_skip){
+    char *token_cpy;
+    if (!isalpha(*current_token)) {
+        if (should_log){
+            printf("symbol must start with alphabetic letter", file_status,should_skip);
+        }
+        return false;
+    }
+
+    token_cpy = current_token;
+    while ((*token_cpy) != '\0') {
+        if (!isalnum(*token_cpy)) {
+            if (should_log){
+            	printf("new_symbol must contain only alphanumeric characters", file_status,should_skip);
+            }
+            return false;
+        }
+        token_cpy++;
+    }
+    if (is_reserved_word(current_token)) {
+        if (should_log) {
+            printf("cannot use reserved word as a symbol name", file_status,should_skip);
+        }
+        return false;
+    }
+    return true;
+}
+
+/**
+ * check if the current word is a valid new symbol declaration
+ * @param current_token
+ * @param file_status
+ * @param should_skip
+ * @param new_symbol
+ * @return if its a valid new symbol name
+ */
+bool is_new_symbol(char *current_token, status *file_status, bool *should_skip, char *new_symbol) {
+    int token_len;
+    token_len = strlen(current_token);
+    if (current_token[token_len - 1] != ':') {
+        new_symbol = NULL;
+        return false;
+    }
+    current_token[token_len - 1] = '\0';
+    if (!is_valid_symbol_name(current_token,file_status,true,should_skip)){
+        return false;
+    }
+    new_symbol = malloc(strlen(current_token));
+    strcpy(new_symbol, current_token);
+    return true;
+}
+
+unsigned int extract_4_bits_from_pos(long number, int p) {
+    number = number >> p;
+    return ((number) & 0xF);
+}
+
+void write_num_to_file(FILE * file_to_write, unsigned long word_bits, int address){
+    word_bits = ((word_bits) & 0xFFFFF);
+
+    fprintf(file_to_write, "%04d A%hx-B%hx-C%hx-D%hx-E%hx\n" ,address,extract_4_bits_from_pos(word_bits,32),extract_4_bits_from_pos(word_bits,28),
+            extract_4_bits_from_pos(word_bits,24),
+            extract_4_bits_from_pos(word_bits,20),
+			extract_4_bits_from_pos(word_bits,16),
+			extract_4_bits_from_pos(word_bits,12),
+			extract_4_bits_from_pos(word_bits,8),
+			extract_4_bits_from_pos(word_bits,4),
+            extract_4_bits_from_pos(word_bits,0));
+}
+
+status *new_status(char *file_name, char *ext) {
+    status *file_status = NULL;
+    file_status = (status *) safe_malloc(sizeof(status));
+    file_status->file_name = concat(file_name, ext);
+    file_status->line_number = 0;
+    file_status->errors_flag = false;
+    return file_status;
+}
+
+/**
+ * free file status from memory
+ * @param current_status
+ */
+void free_status(status *current_status) {
+    free(current_status->file_name);
+    free(current_status);
+}
+
+char *concat(const char *s1, const char *s2) {
+    char *result = malloc(strlen(s1) + strlen(s2) + 1);
+    strcpy(result, s1);
+    strcat(result, s2);
+    return result;
+}
+

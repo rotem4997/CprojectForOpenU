@@ -1,10 +1,15 @@
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 #include "stdbool.h"
+#include <stddef.h>
+
 
 #define MEMORY_MAX_SIZE 256 /* memory size */
 #define NUM_OF_REGISTERS 8 /* number of registers */
 #define NUM_OF_OPCODE 16 /* number of op code */
+#define MAX_LOG_SIZE 512 
+#define ERROR_WRAPPER "error in %s line %d: %s\n" /* error wrapper */
+#define ERROR_WRAPPER_NO_LINE "error in %s: %s\n" /* error wrapper */
 
 #define INT8_MIN -127 /* min value number */
 #define INT8_MAX 128 /* max value number */
@@ -97,19 +102,44 @@ typedef enum PC_Commands {
 
 } PC_Commands;
 
+typedef struct machine_instruction {
+    char * name; /* op code name */
+    int opcode; /* op code */
+    int amount_of_operands; /*amount of needed operands*/
+} machine_instruction;
+
+static machine_instruction machine_instructions[NUM_OF_OPCODE] = {
+        /* group 1- 2 operands machine directives */
+        {"mov",0},
+        {"cmp",1},
+        {"add",2},
+        {"sub",3},
+        {"lea",6},
+
+        /* group 2- 1 operand machine directives */
+        {"not",4},
+        {"clr",5},
+        {"inc",7},
+        {"dec",8},
+        {"jmp",9},
+        {"bne",10},
+        {"get",11},
+        {"prn",12},
+        {"jsr",13 },
+        
+        /* group 3- no operand machine directives */
+        {"rts", 14},
+        {"stop",15},
+        {"none",-1}
+
+};
+
 /** Registers */
-typedef enum registers {
-    r0 = 0,
-    r1,
-    r2,
-    r3,
-    r4,
-    r5,
-    r6,
-    r7,
-    /** reg not found */
-    NONE_REG = -1
-} registers;
+static char *registers[NUM_OF_REGISTERS] = {
+        "r0", "r1", "r2", "r3",
+        "r4", "r5", "r6", "r7",
+        "none"
+};
 
 /** data decleration */
 typedef struct data
@@ -131,7 +161,7 @@ typedef struct string
 
 /** Single source line */
 typedef struct line_info {
-    long line_number;
+    long line;
     char *file_name;
     char *content;
 } line_info;
@@ -175,12 +205,6 @@ typedef struct external {
     struct external * next;
 } external;
 
-
-typedef struct machine_instruction {
-    char *name;
-    int opcode;
-    int amount_of_operands;
-} machine_instruction;
 
 typedef struct machine_instruction_line {
     machine_instruction *mi;

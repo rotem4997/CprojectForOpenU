@@ -50,7 +50,7 @@ macro *get_macro_by_id(char *macro_id){
     return NULL;
 }
 
-void free_macros_list(){
+void free_macro_list(){
     macro *head = macro_list_head, *tmp;
     while(head!=NULL){
         tmp = head;

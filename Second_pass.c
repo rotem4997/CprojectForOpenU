@@ -16,11 +16,13 @@ void second_pass(status *file_status) {
     entry *entry_it =NULL;
     word *word_it =NULL;
     char_symbols *s_pointer = NULL;
-    printf("Error, Limit log size", file_status); /* format err*/
+    char error_msg[MAX_LOG_SIZE]; 
+    sprintf("Error, Limit log size", file_status); /* format err*/
 
     while ((entry_it = get_next_unchecked_entry())) { /* get the next unchecked entry*/
         if(!(s_pointer = get_symbol_by_id(entry_it->symbol_id))){ /* if entry not exist in symbol table, log error */
-            printf("entry symbol not found in code",entry_it->symbol_id);
+            sprintf(error_msg, "entry symbol %s not found in code",entry_it->symbol_id);
+            log_error_without_line_wrapper(error_msg,file_status,NULL );
             entry_it->checked = true;/* mark as checked*/
         }else { /* else */
             s_pointer->is_entry = true; /* set  symbol as entry */
@@ -31,7 +33,8 @@ void second_pass(status *file_status) {
     while ((word_it = get_next_missing_symbol_word())){ /* get the next symbol with missing symbol*/
 
         if(!(s_pointer = get_symbol_by_id(word_it->dlw->symbol_need_to_be_filled))){ /* look for the missing symbol in symbol table*/
-            printf("cannot find missing symbol", word_it->dlw->symbol_need_to_be_filled);
+            sprintf(error_msg, "cannot find missing symbol %s", word_it->dlw->symbol_need_to_be_filled);
+            log_error_without_line_wrapper(error_msg ,file_status,NULL );
             free(word_it->dlw->symbol_need_to_be_filled);
             word_it->dlw->symbol_need_to_be_filled = NULL;
             free(word_it->next->dlw->symbol_need_to_be_filled);
@@ -58,9 +61,9 @@ void second_pass(status *file_status) {
         }
     }
     if (file_status->errors_flag) { /* if errors found in the second pass, log that error found and skip file */
-        printf(stderr,"error found in second pass, skipping file!\n" );
+        fprintf(stderr,"error found in second pass, skipping file!\n" );
         return;
     }
-    printf(stdout, "second pass of %s finished successfully\n", file_status->file_name);
+    fprintf(stdout, "second pass of %s finished successfully\n", file_status->file_name);
 
 }

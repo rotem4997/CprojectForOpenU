@@ -35,6 +35,13 @@ external *get_head_externals() {
 }
 
 
+void print_externals_to_file(FILE * file_to_write) {
+    external * it = external_list;
+    while (it){ /* for each external */
+        printf(file_to_write,"%d, %d\n\n", it->symbol_name, it->symbol_name);
+        it = it->next;
+    }
+}
 
 void free_externals_list() {
     external *it = external_list, *tmp;

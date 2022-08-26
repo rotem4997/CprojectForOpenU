@@ -1,11 +1,12 @@
 #include "globals.h"
+#include "Header.h"
 #include "string.h"
 #include "stdbool.h"
 #include <stdlib.h>
 #include <stdio.h>
 
 
-void pre_assembler(FILE *file_to_read, char *file_name, line_info *file_status){
+void pre_assembler(FILE *file_to_read, char *file_name, status *file_status){
 FILE *file_to_write;
 char line[MAX_LINE_LENGTH];
 char line_copy[MAX_LINE_LENGTH];
@@ -13,9 +14,9 @@ char* curr_word = NULL;
 macro *curr_macro = NULL;
 int macro_flag = 0;
 
-file_to_write = read_file(file_name, ".am", "w");
+file_to_write = read_file_with_extension(file_name, ".am", "w");
 if(!file_to_write){
-    fprintf("Could not create %s.am file", file_name);
+    printf("Could not create %s.am file", file_name);
     exit(1);
 }
 while(fgets(line,MAX_LINE_LENGTH, file_to_read)){
@@ -59,6 +60,6 @@ if(!strcmp(curr_word,START_OF_MACRO)){
 
 
 fclose(file_to_write);
-free_macros_list();
+free_macro_list();
 
 }

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 int main(int argc, char *argv[]) {
-    /**char ASCII_symbol[ASCII_MAX_LENGTH_VALUE]={
+    char ASCII_symbol[ASCII_MAX_LENGTH_VALUE]={
       '!'
       ,'@'
       ,'#'
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
       ,'t'
       ,'u'
       ,'v'
-    };*/
+    };
     int i;
     for (i = 1; i < argc; ++i) { /* iterate through the arguments*/
         FILE *file_to_read = NULL; /* file pointer */

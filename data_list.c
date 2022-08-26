@@ -5,11 +5,18 @@
 #include <stdlib.h>
 
 static data *data_list_head = NULL;
- char error_msg[MAX_LINE_LENGTH]; 
+
+void print_data_to_file(FILE * file_to_write, int IC) {
+    data * it = data_list_head;
+    while (it){
+        unsigned long word_bits = 0;
+        word_bits = (( (1 <<2) & 0xFF)<<16) | ((unsigned short int)(it->value) & 0xFFFFF) ;
+        write_num_to_file(file_to_write,word_bits,it->dc+IC);
+        it = it->next;
+    }
+}
 
 data *add_value_to_data_list(int dc, int value){
-
-
 
     data *new = NULL;
     new = malloc(sizeof(data));
