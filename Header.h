@@ -16,9 +16,9 @@ bool insert_num(char *current_num, int i, status *file_status, int *DC);
 bool data_directive_parsing(char *current_token, status *file_status, bool *should_skip, int *DC);
 bool string_directive_parsing (char *current_token, status *file_status, bool *should_skip, int *DC);
 bool is_directive(char *current_token, status *file_status, bool *should_skip, char *new_symbol, int *DC);
-machine_directive_line *get_machine_directive_line(char *current_token, status *file_status, bool *should_skip);
+machine_instruction_line *get_machine_instruction_line(char *current_token, status *file_status, bool *should_skip);
 bool is_index_addressing_mode(char *operand, char *symbol_name ,unsigned int *register_num, status *file_status, bool *should_skip);
-addressing_mode analyse_addressing_mode(char *operand, char *index_symbol, unsigned int *register_num, int *immediate_num , status *file_status, bool *should_skip);
+addressing_types analyse_addressing_types(char *operand, char *index_symbol, unsigned int *register_num, int *immediate_num , status *file_status, bool *should_skip);
 bool analyse_operands_structure_of_machine_directive(char *current_token, int *IC, status *file_status, bool *should_skip);
 /* second pass functions */
 void second_pass(status *file_status);
@@ -37,9 +37,9 @@ macro *get_macro_by_id(char *macro_id);
 void free_macro_list();
 
 /* symbol table functions*/
-symbol *add_symbol_to_symbol_table(char *symbol_id, int value, bool is_external , bool is_code, bool is_entry , bool is_data,
+char_symbols *add_symbol_to_symbol_table(char *symbol_id, int value, bool is_external , bool is_code, bool is_entry , bool is_data,
                                    status *file_status);
-symbol *get_symbol_by_id(char *symbol_id);
+char_symbols *get_symbol_by_id(char *symbol_id);
 void free_symbol_table();
 void display_symbol_list();
 void add_ic_to_data_symbols( int IC);
@@ -60,13 +60,9 @@ void create_ent_file(char *file_name);
 
 /* word linked list functions*/
 word *new_word();
-data_word *new_data_word(unsigned int *are , int *value , char *init_missing_symbol, data_word_type t);
-funct_details_word *new_funct_details_word(int funct);
+data_word *new_data_word(unsigned int *are , int *value , char *init_missing_symbol, data_word t);
 bool add_word_to_word_list(word *new);
 word *get_next_missing_symbol_word();
-void push_word(word *first_word, word *word_to_add);
-void print_words_to_file(FILE * file_to_write);
-void free_funct_details_word(funct_details_word *word);
 void free_op_code_word( op_code_word *word);
 void free_data_word( data_word *word);
 void free_word_chain(word * head);
@@ -85,7 +81,7 @@ void free_status(status *current_status);
 void free_linked_lists();
 
 /*common*/
-machine_directive *get_machine_directive(char *current_token);
+machine_instruction *get_machine_instruction (char *current_token);
 int is_register(char *current_token);
 bool is_reserved_word(char *current_token);
 bool is_valid_symbol_name(char *current_token, status *file_status,bool should_log, bool *should_skip);
@@ -99,4 +95,6 @@ void print_externals_to_file(FILE * file_to_write);
 void create_ext_file(char *file_name);
 void free_externals_list();
 
+instruction find_instruction_by_name(char *name);
+bool is_alphanumeric_str(char *string);
 #endif /*C_ASSEMBLER_HEADERS_H*/

@@ -1,7 +1,9 @@
 #include "globals.h"
-#include "utils.h"
-#include "string.h"
+#include "Header.h"
+#include <string.h>
 #include "stdbool.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 
 /**
@@ -17,7 +19,7 @@ machine_instruction_line *get_machine_instruction_line(char *current_token, stat
     int OP_counter = 0;
     char * op;
     char * op2;
-    if (!(mi = get_machine_instruction(current_token))) {
+    if (!(mi = get_machine_instruction_line(current_token, file_status, should_skip))) {
         printf("undefined machine instruction", file_status,should_skip);
         return NULL;
     }
@@ -91,7 +93,7 @@ addressing_types check_addressing_type(char *operand, char *record_symbol, unsig
         char *end;
         char *operand_cpy = operand;
         operand_cpy++;
-        result = strtol(operand_cpy, &end, 10);
+        result = strtok(operand_cpy, &end);
         if (*end != '\0') {
             printf("Invalid Number", file_status, should_skip);
             return NONE;
@@ -115,7 +117,7 @@ addressing_types check_addressing_type(char *operand, char *record_symbol, unsig
         return NONE;
     }
 
-    if (is_valid_label_name(operand, file_status, true,should_skip)) { /* check if operand is valid symbol name and return direct addressing mode */
+    if (is_valid_symbol_name(operand, file_status, true,should_skip)) { /* check if operand is valid symbol name and return direct addressing mode */
     return DIRECT;
     }
     return NONE;
@@ -142,36 +144,34 @@ bool analyse_operands_structure_of_machine_instruction(char *current_token, int 
         unsigned int register_num;
         int immediate_num;
         char index_symbol[MAX_LINE_LENGTH];
-        addressing_types source_addresing_types = analyse_addresssing_types(mil->source_operand, index_symbol, &register_num, &immediate_num, file_status, should_skip);
+        addressing_types source_addresing_types = check_addresssing_types(mil->source_operand, index_symbol, &register_num, &immediate_num, file_status, should_skip);
 
         if (source_addresing_types == NONE) {
             free_word_chain(first_word);
             return false;
         } else if (source_addresing_types == REGISTER) {
             second_word->source_addressing_types= REGISTER;
-            second_word->source_registery == register_num;
+            second_word->source_operand == register_num;
         } else if (source_addresing_types == RELATIVE) {
             second_word->source_addressing_types = RELATIVE;
-            second_word->source_addressing_registery = register_num;
+            second_word->source_operand = register_num;
             add_to_ic = add_to_ic+2;
         } else if (source_addresing_types == IMMEDIATE) {
              second_word->source_addressing_types = IMMEDIATE;
-            second_word->source_registery = 0;
+            second_word->source_operand = 0;
 
             immediate_word = new_word();
-            immediate_word->dlw = new_data_word(&absolute_t,&immediate_num, NULL);
 
             push_word(first_word, immediate_word);
             immediate_word->address = *IC + add_to_ic;
             add_to_ic++;
         } else {
             second_word->source_addressing_types = DIRECT;
-            second_word->source_registery = 0;
+            second_word->source_operand = 0;
 
             direct_word = new_word();
             direct_word->address = *IC + add_to_ic;
 
-            direct_word->dlw = new_data_word(NULL, NULL, mil->source_operand);
             push_word(second_word, direct_word);
             add_to_ic = add_to_ic+2;
         }
@@ -181,36 +181,34 @@ bool analyse_operands_structure_of_machine_instruction(char *current_token, int 
         unsigned int register_num;
         int immediate_num;
         char index_symbol[MAX_LINE_LENGTH];
-        addressing_types dest_addresing_types = analyse_addresssing_types(mil->destination_operand,, index_symbol, &register_num, &immediate_num, file_status, should_skip);
+        addressing_types dest_addressing_types = analyse_addresssing_types(mil->destination_operand, index_symbol, &register_num, &immediate_num, file_status, should_skip);
 
-        if (dest_addresing_types == NONE) {
+        if (dest_addressing_types == NONE) {
             free_word_chain(first_word);
             return false;
-        } else if (dest_addresing_types == REGISTER) {
-            second_word->destination_addresing_types= REGISTER;
-            second_word->destination_registery == register_num;
-        } else if (dest_addresing_types == RELATIVE) {
-            second_word->destination_addresing_types = RELATIVE;
-            second_word->destination_registery = register_num;
+        } else if (dest_addressing_types == REGISTER) {
+            second_word->destination_addressing_types= REGISTER;
+            second_word->destination_operand == register_num;
+        } else if (dest_addressing_types == RELATIVE) {
+            second_word->destination_addressing_types = RELATIVE;
+            second_word->destination_operand = register_num;
             add_to_ic = add_to_ic+2;
-        } else if (dest_addresing_types == IMMEDIATE) {
+        } else if (dest_addressing_types == IMMEDIATE) {
              second_word->destination_addressing_types = IMMEDIATE;
-            second_word->destination_registery = 0;
+            second_word->destination_operand= 0;
 
             immediate_word = new_word();
-            immediate_word->dlw = new_data_word(&absolute_t,&immediate_num, NULL);
 
             push_word(first_word, immediate_word);
             immediate_word->address = *IC + add_to_ic;
             add_to_ic++;
         } else {
             second_word->destination_addressing_types = DIRECT;
-            second_word->destination_registery = 0;
+            second_word->destination_operand = 0;
 
             direct_word = new_word();
             direct_word->address = *IC + add_to_ic;
 
-            direct_word->dlw = new_data_word(NULL, NULL, mil->destination_operand);
             push_word(second_word, direct_word);
             add_to_ic = add_to_ic+2;
         }
@@ -223,7 +221,7 @@ bool analyse_operands_structure_of_machine_instruction(char *current_token, int 
     return true;
 }
 
-void data_directive_parsing(char *current_token, status *file_status, bool *should_skip, int *DC) {
+bool data_directive_parsing(char *current_token, status *file_status, bool *should_skip, int *DC) {
     bool expecting_comma = false; 
     bool status;
     while (current_token) {
@@ -243,7 +241,7 @@ void data_directive_parsing(char *current_token, status *file_status, bool *shou
 }
 }
 
-void string_directive_parsing(char *current_token, status *file_status, bool *should_skip, int *DC) {
+bool string_directive_parsing(char *current_token, status *file_status, bool *should_skip, int *DC) {
     while (current_token) {
         char *token_cpy;
         int token_len = strlen(current_token);

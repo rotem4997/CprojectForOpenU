@@ -11,17 +11,22 @@
 #define ASCII_MAX_LENGTH_VALUE 32 /* max length of ascii char value* /
 
 /** Instructions type */
-#define DATA = ".data"
-#define STRING = ".string"
-#define ENTRY = ".entry"
-#define STRUCT = ".struct"
-#define EXTERNAL = ".extern"
+typedef enum instruction 
+{
+        DATA, 
+        STRING, 
+        ENTRY,
+        STRUCT,
+        EXTERNAL,
+        NONE_INST
+} instruction;
 
 #define LABEL 30 /* Max length of the label */
 #define IC_INIT_VALUE 100 /* Initial IC Value */
 #define MAX_LINE_LENGTH 80 /* Maximum length of a source of a single line */
 
-
+#define END_OF_MACRO "endmacro"
+#define START_OF_MACRO "macro"
 
 
 /**symbol declration*/
@@ -40,42 +45,6 @@ typedef struct char_symbols
     
 } char_symbols;
 
-/**Unique 32 base ASCII array*/
-
-char ASCII_symbol[ASCII_MAX_LENGTH_VALUE]={
-'!'
-,'@'
-,'#'
-,'$'
-,'%'
-,'^'
-,'&'
-,'*'
-,'<'
-,'>'
-,'a'
-,'b'
-,'c'
-,'d'
-,'e'
-,'f'
-,'g'
-,'h'
-,'i'
-,'j'
-,'k'
-,'l'
-,'m'
-,'n'
-,'o'
-,'p'
-,'q'
-,'r'
-,'s'
-,'t'
-,'u'
-,'v'
-};
 
 /** Addressing types */
 
@@ -173,17 +142,28 @@ typedef struct status { /* file status */
     bool errors_flag;
 } status;
 
+typedef struct data_word {
+    unsigned int are : 3;
+    signed int data: 16;
+    char *symbol_need_to_be_filled;
+} data_word;
+
 typedef struct op_code_word {
     unsigned int op_code: 16;
 } op_code_word;
 
 typedef struct word {
     int address;
+    int source_operand: 2;
+    int source_addressing_types: 4;
+    int destination_operand: 2;
+    int destination_addressing_types: 4;
+    data_word *dlw;
     op_code_word *ocw;
     struct word *next;
 } word;
 
-
+ 
 typedef struct entry {
     char symbol_id[ASCII_MAX_LENGTH_VALUE];
     bool checked;
@@ -195,11 +175,6 @@ typedef struct external {
     struct external * next;
 } external;
 
-typedef struct data_word {
-    unsigned int are : 3;
-    signed int data: 16;
-    char *symbol_need_to_be_filled;
-} data_word;
 
 typedef struct machine_instruction {
     char *name;
@@ -218,7 +193,6 @@ typedef struct macro{
     char *macro_content;
     struct macro *next;
 }macro;
-
 
 
 #endif

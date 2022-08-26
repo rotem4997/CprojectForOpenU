@@ -1,4 +1,5 @@
 #include "globals.h"
+#include "Header.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,8 +15,6 @@ external *add_to_external_list(char *symbol_id , int base, int offset){
         exit(1);
     }
     strcpy(new->symbol_name, symbol_id);
-    new->base = base;
-    new->offset =offset;
     new->next = NULL;
     if(!external_list){
         external_list = new;

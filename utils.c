@@ -1,10 +1,10 @@
 #include "globals.h"
+#include "Header.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "stdbool.h"
-#include "string.h"
-#include "utils.h"
+#include <stdbool.h>
+#include <string.h>
 
 
 bool is_valid_label_name(char *name) {
@@ -17,7 +17,7 @@ bool is_valid_label_name(char *name) {
         for (;string[(index)] && (string[(index)] == '\t' || string[(index)] == ' '); (++(index)))\
         ;
 
-bool find_label(line_info line, char *symbol_dest) {//this function checks if the label we have found is valid//
+bool find_label(line_info line, char *symbol_dest) {
 	int j, i;
 	i = j = 0;
 
@@ -33,7 +33,7 @@ bool find_label(line_info line, char *symbol_dest) {//this function checks if th
 	/* if it was a try to define label, print errors if needed. */
 	if (line.content[i] == ':') {
 		if (!is_valid_label_name(symbol_dest)) {
-			 fprintf(stderr, "Label name is invalid! must contain up to 30 charecters and can be only AlphaNumeric");
+			printf(stderr, "Label name is invalid! must contain up to 30 charecters and can be only AlphaNumeric");
 			symbol_dest[0] = '\0';
 			return true; /* No valid symbol, and no try to define one */
 		}
@@ -52,16 +52,8 @@ bool is_alphanumeric_str(char *string) {
 	return true;
 }
 
-bool is_reserved_word(char *name) {
-	int fun, opc;
-	/* check if register or command */
-	get_opcode_func(name, &opc, (funct *) &fun);
-	if (opc != NONE_OP || get_register_by_name(name) != NONE_REG || find_instruction_by_name(name) != NONE_INST) return TRUE;
 
-	return false;
-}
-
-reg get_register_by_name(char *name) {
+registers get_register_by_name(char *name) {
 	if (name[0] == 'r' && isdigit(name[1]) && name[2] == '\0') {
 		int digit = name[1] - '0'; /* convert digit ascii char to actual single digit */
 		if (digit >= 0 && digit <= 7) return digit;
@@ -69,6 +61,19 @@ reg get_register_by_name(char *name) {
 	return NONE_REG; /* No match */
 }
 
+struct instruction_lookup_item {
+	char *name;
+	instruction value;
+};
+
+static struct instruction_lookup_item
+		instructions_lookup_table[] = {
+		{"string", STRING},
+		{"data",   DATA},
+		{"entry",  ENTRY},
+		{"extern", EXTERNAL},
+		{NULL, NONE_INST}
+};
 
 instruction find_instruction_by_name(char *name) {
 	struct instruction_lookup_item *curr_item;
@@ -79,7 +84,7 @@ instruction find_instruction_by_name(char *name) {
 	}
 	return NONE_INST;
 }
-/////////Adresing method - need to build the LOG_ERROR_WRAPPER/////
+
 addressing_types analyse_addressing_types(char *operand, char *index_symbol, unsigned int *register_num, int *immediate_num , status *file_status, bool *should_skip){
     int result = 0; /* immediate number initialize */
     int reg = 0; /* registry number initialize */
@@ -111,40 +116,13 @@ addressing_types analyse_addressing_types(char *operand, char *index_symbol, uns
         return DIRECT;
     }
 
-    // if(is_index_addressing_mode(operand, index_symbol,register_num, file_status, should_skip)) { /* check if operand is index and if so, set index_symbol and register_num */
-    //     return INDEX;
-    // } else if (*should_skip){
-    //     return NONE;
-    // }
 
     if (is_valid_symbol_name(operand, file_status, true,should_skip)) { /* check if operand is valid symbol name and return direct addressing mode */
         return DIRECT;
     }
     return NONE;
 }
-void log_error_wrapper(char *err, status *file_status,bool *should_skip) {
-    char error_msg[MAX_LOG_SIZE];
-    if (should_skip != NULL) {
-        *should_skip = true;
-    }
-    file_status->errors_flag = true;
-    sprintf(error_msg, ERROR_WRAPPER, file_status->file_name, file_status->line_number, err);
-    fprintf(stderr,"%s" ,error_msg);
-}
 
-void get_opcode_func(char *cmd, PC_Commands *opcode_out, PC_Commands *funct_out) {
-	struct cmd_lookup_element *e;
-	*opcode_out = NONE_OP;
-	*funct_out = NONE_FUNCT;
-	/* iterate through the lookup table, if commands are same return the opcode of found. */
-	for (e = lookup_table; e->cmd != NULL; e++) {
-		if (strcmp(e->cmd, cmd) == 0) {
-			*opcode_out = e->op;
-			*funct_out = e->fun;
-			return;
-		}
-	}
-}
 
 
 bool process_string_instruction(line_info line, int index, long *data_img, long *dc) {

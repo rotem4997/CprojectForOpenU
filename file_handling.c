@@ -43,7 +43,7 @@ void create_ob_file(char *file_name,int IC, int DC) {
     if (!(file_to_write = read_file_with_extension(file_name,".ob", "w"))){
         return;
     }
-    fprintf(file_to_write, "%d %d\n",IC- MEMORY_START_ADDRESS , DC);
+    fprintf(file_to_write, "%d %d\n",IC- IC_INIT_VALUE , DC);
     print_words_to_file(file_to_write);
     print_data_to_file(file_to_write,IC);
     fclose(file_to_write);

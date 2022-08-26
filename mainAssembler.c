@@ -1,15 +1,50 @@
 #include "globals.h"
+#include "Header.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 int main(int argc, char *argv[]) {
+    /**char ASCII_symbol[ASCII_MAX_LENGTH_VALUE]={
+      '!'
+      ,'@'
+      ,'#'
+      ,'$'
+      ,'%'
+      ,'^'
+      ,'&'
+      ,'*'
+      ,'<'
+      ,'>'
+      ,'a'
+      ,'b'
+      ,'c'
+      ,'d'
+      ,'e'
+      ,'f'
+      ,'g'
+      ,'h'
+      ,'i'
+      ,'j'
+      ,'k'
+      ,'l'
+      ,'m'
+      ,'n'
+      ,'o'
+      ,'p'
+      ,'q'
+      ,'r'
+      ,'s'
+      ,'t'
+      ,'u'
+      ,'v'
+    };*/
     int i;
     for (i = 1; i < argc; ++i) { /* iterate through the arguments*/
         FILE *file_to_read = NULL; /* file pointer */
         status *file_status = NULL; /* file status */
 
-        int IC = MEMORY_START_ADDRESS; /* initialize the ic and dc for each file*/
+        int IC = IC_INIT_VALUE; /* initialize the ic and dc for each file*/
         int DC = 0;
 
         if ((file_to_read = read_file_with_extension(argv[i], ".as", "r"))) { /* check if .as file exist and if so pass the assembly file to the pre assembler */
