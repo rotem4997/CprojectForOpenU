@@ -9,6 +9,7 @@ void copy_token(char *dest, char *line);
 int end_of_line(char *line);
 int ignore(char *line);
 
+
 /**Functions that are used to determine types of tokens */
 int find_index(char *token, const char *arr[], int n);
 int find_command(char *token);
