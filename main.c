@@ -1,21 +1,11 @@
-/*
-    Welcome to our assembler program!
-    It was written according to the instructions in the Mamans' book.
-    We have:
-    -Global variables, including an error number (according to an enum in assembler.h).
-    -Each file has its own description.
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "structs.h"
+#include "preprocessor.h"
 #include "prototypes.h"
 #include "ext_vars.h"
 #include "utils.h"
 
-/* We define global variables here because they are defined as extern,
- * and therefore must be initialized in a specific C file.
- */
 
 unsigned int data[MACHINE_RAM];
 unsigned int instructions[MACHINE_RAM];
@@ -33,7 +23,7 @@ const char base32[32] = {
 
 const char *commands[] = {
         "mov", "cmp", "add", "sub", "not", "clr", "lea", "inc", "dec", "jmp", "bne",
-        "red", "prn", "jsr", "rts", "stop"
+        "get", "prn", "jsr", "rts", "hlt"
 };
 
 const char *directives[] = {
@@ -50,26 +40,28 @@ void reset_global_vars()
     was_error = FALSE;
 }
 
-/* This function handles all activities in the program, it receives command line arguments for filenames */
+/** Handles all activities in the program */
 int main(int argc, char *argv[]){
     int i;
     char *input_filename;
     FILE *fp;
+    FILE *ap;
     
     for(i = 1; i < argc; i++)
     {
-        input_filename = create_file_name(argv[i], FILE_INPUT); /* Appending .as to filename */
+        input_filename = create_file_name(argv[i], FILE_INPUT); /** Appending .as to filename */
         fp = fopen(input_filename, "r");
-        preprocessor(fp ,input_filename);
-        if(fp != NULL) { /* If file exists */
+        preprocessor(fp ,input_filename); /** Appending .am to filename */
+        ap = fopen(input_filename, "r");
+        if(ap != NULL) { 
             printf("************* Started %s assembling process *************\n\n", input_filename);
 
             reset_global_vars();
-            first_pass(fp);
+            first_pass(ap);
 
-            if (!was_error) { /* procceed to second pass */
-                rewind(fp);
-                second_pass(fp, argv[i]);
+            if (!was_error) { 
+                rewind(ap);
+                second_pass(ap, argv[i]);
             }
 
             printf("\n\n************* Finished %s assembling process *************\n\n", input_filename);
