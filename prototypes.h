@@ -7,7 +7,7 @@
 void first_pass(FILE *fp);
 void second_pass(FILE *fp, char *filename);
 
-/*------------------ First Pass Functions ------------------*/
+/*First Pass related functions*/
 
 unsigned int build_first_word(int type, int is_first, int is_second, int first_method, int second_method);
 int calculate_command_num_additional_words(int is_first, int is_second, int first_method, int second_method);
@@ -26,7 +26,7 @@ void read_line(char *line);
 void write_num_to_data(int num);
 void write_string_to_data(char *str);
 
-/*------------------ Second Pass Functions ------------------*/
+/**Second pass related functions*/
 
 unsigned int build_register_word(boolean is_dest, char *reg);
 void check_operands_exist(int type, boolean *is_src, boolean *is_dest);
