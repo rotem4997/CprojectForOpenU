@@ -9,14 +9,14 @@
 #include "prototypes.h"
 #include "utils.h"
 
-void second_pass(FILE *fp, char *filename)
+void second_pass(FILE *ap, char *filename)
 {
     char line[LINE_LENGTH]; /* This string will contain each line at a time */
     int line_num = 1; /* Line numbers start from 1 */
 
     ic = 0; /* Initializing global instructions counter */
 
-    while(fgets(line, LINE_LENGTH, fp) != NULL) /* Read lines until end of file */
+    while(fgets(line, LINE_LENGTH, ap) != NULL) /* Read lines until end of file */
     {
         err = NO_ERROR;
         if(!ignore(line)) /* Ignore line if it's blank or ; */
@@ -92,13 +92,13 @@ int write_output_files(char *original)
  * The first line is the size of each memory (instructions and data).
  * Rest of the lines are: address in the first column, word in memory in the second.
  */
-void write_output_ob(FILE *fp)
+void write_output_ob(FILE *ap)
 {
     unsigned int address = MEMORY_START;
     int i;
     char *param1 = convert_to_base_32(ic), *param2 = convert_to_base_32(dc);
 
-    fprintf(fp, "%s\t%s\n\n", param1, param2); /* First line */
+    fprintf(ap, "%s\t%s\n\n", param1, param2); /* First line */
     free(param1);
     free(param2);
 
@@ -107,7 +107,7 @@ void write_output_ob(FILE *fp)
         param1 = convert_to_base_32(address);
         param2 = convert_to_base_32(instructions[i]);
 
-        fprintf(fp, "%s\t%s\n", param1, param2);
+        fprintf(ap, "%s\t%s\n", param1, param2);
 
         free(param1);
         free(param2);
@@ -118,20 +118,20 @@ void write_output_ob(FILE *fp)
         param1 = convert_to_base_32(address);
         param2 = convert_to_base_32(data[i]);
 
-        fprintf(fp, "%s\t%s\n", param1, param2);
+        fprintf(ap, "%s\t%s\n", param1, param2);
 
         free(param1);
         free(param2);
     }
 
-    fclose(fp);
+    fclose(ap);
 }
 
 /* This function writes the output of the .ent file.
  * First column: name of label.
  * Second column: address of definition.
  */
-void write_output_entry(FILE *fp)
+void write_output_entry(FILE *ap)
 {
     char *base32_address;
 
@@ -142,19 +142,19 @@ void write_output_entry(FILE *fp)
         if(label -> entry)
         {
             base32_address = convert_to_base_32(label -> address);
-            fprintf(fp, "%s\t%s\n", label -> name, base32_address);
+            fprintf(ap, "%s\t%s\n", label -> name, base32_address);
             free(base32_address);
         }
         label = label -> next;
     }
-    fclose(fp);
+    fclose(ap);
 }
 
 /* This function writes the output of the .ext file.
  * First column: label name.
  * Second column: address where the external label should be replaced.
  */
-void write_output_extern(FILE *fp)
+void write_output_extern(FILE *ap)
 {
     char *base32_address;
     extPtr node = ext_list;
@@ -163,11 +163,11 @@ void write_output_extern(FILE *fp)
     do
     {
         base32_address = convert_to_base_32(node -> address);
-        fprintf(fp, "%s\t%s\n", node -> name, base32_address); /* Printing to file */
+        fprintf(ap, "%s\t%s\n", node -> name, base32_address); /* Printing to file */
         free(base32_address);
         node = node -> next;
     } while(node != ext_list);
-    fclose(fp);
+    fclose(ap);
 }
 
 /* This function opens a file with writing permissions, given the original input filename and the
