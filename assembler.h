@@ -1,73 +1,65 @@
-/*
-    This file contains constants and enums that are used all over the program.
-*/
-
 #ifndef ASSEMBLER_H
 
 #define ASSEMBLER_H
 
-/**************************************** Defaults ****************************************/
 
-#define MEMORY_START 100
-#define EMPTY_WORD 0
-#define EXTERNAL_DEFAULT_ADDRESS 0
+#define MEMORY_START 100 /** The IC counter start */
+#define EMPTY_WORD 0 /** Empty Word */
+#define EXTERNAL_DEFAULT_ADDRESS 0 /** Defult Address */
 #define NOT_FOUND -1
 #define NO_ERROR 0
 #define ERROR 1
-#define SEPARATOR "."
-#define COMMA ','
-#define EXPANDED_EXT ".am"
-/**************************************** Limitations ****************************************/
+#define SEPARATOR "." /** . Separator */
+#define COMMA ',' /** Comma */
+#define EXPANDED_EXT ".am" /** .am Extantion */
 
-#define LINE_LENGTH 80 /* maximum chars per line */
-#define MINIMUM_LABEL_LENGTH_WITH_COLON 2
-#define MINIMUM_LABEL_LENGTH_WITHOUT_COLON 1
-#define LABEL_LENGTH 30 /* maximum chars per label */
+#define LINE_LENGTH 81 /** maximum chars per line */
+#define MINIMUM_LABEL_LENGTH_WITH_COLON 2 /** : */
+#define MINIMUM_LABEL_LENGTH_WITHOUT_COLON 1 /** : */
+#define LABEL_LENGTH 30 /** maximum chars per label */
 
-#define MAX_COMMAND_LENGTH 4 /* maximum number of characters in a command */
-#define MIN_COMMAND_LENGTH 3 /* minimum number of characters in a command */
+#define MAX_COMMAND_LENGTH 4 /** maximum number of characters in a command */
+#define MIN_COMMAND_LENGTH 3 /** minimum number of characters in a command */
 
-#define REGISTER_LENGTH 2 /* a register's name contains 2 characters */
-#define MIN_REGISTER 0 /* r0 is the first register */
-#define MAX_REGISTER 7 /* r7 is the last register */
+#define REGISTER_LENGTH 2 /** a register's name contains 2 characters */
+#define MIN_REGISTER 0 /** r0 is the first register */
+#define MAX_REGISTER 7 /** r7 is the last register */
 
 #define MAX_EXTENSION_LENGTH 5
 
-#define BASE32_SEQUENCE_LENGTH 3 /* A base32 sequence of a word consists of 2 digits (and '\0' ending) */
+#define BASE32_SEQUENCE_LENGTH 3 /** A base32 sequence of a word consists of 2 digits (and '\0' ending) */
 
-/**************************************** Other Constants ****************************************/
+#define NUM_DIRECTIVES 5 /** number of existing directives*/
+#define NUM_COMMANDS 16 /** number of existing commands */
 
-#define NUM_DIRECTIVES 5 /* number of existing directives*/
-#define NUM_COMMANDS 16 /* number of existing commands */
+#define FIRST_STRUCT_FIELD 1 /** Index of first struct field */
+#define SECOND_STRUCT_FIELD 2 /** Index of second struct field */
 
-#define FIRST_STRUCT_FIELD 1 /* Index of first struct field */
-#define SECOND_STRUCT_FIELD 2 /* Index of second struct field */
+#define BITS_IN_WORD 10 /** Bit-related Word */
+#define BITS_IN_OPCODE 4 /** Bit-related Opcode */
+#define BITS_IN_METHOD 2 /** Bit-related Method */
+#define BITS_IN_ARE 2 /** Bit-related A,R,E */
+#define BITS_IN_REGISTER 4 /** Bit-related Register */
+#define BITS_IN_ADDRESS 8 /** Bit-related Address */
 
-/* Bit-related info */
-#define BITS_IN_WORD 10
-#define BITS_IN_OPCODE 4
-#define BITS_IN_METHOD 2
-#define BITS_IN_ARE 2
-#define BITS_IN_REGISTER 4
-#define BITS_IN_ADDRESS 8
+#define SRC_METHOD_START_POS 4 /** Addressing types bits location in the source first word of a command */
+#define SRC_METHOD_END_POS 5 /** Addressing types bits location in the source end word of a command */
+#define DEST_METHOD_START_POS 2 /** Addressing types bits location in the destination first word of a command */
+#define DEST_METHOD_END_POS 3 /** Addressing types bits location in the destionation end word of a command */
 
-/* Addressing methods bits location in the first word of a command */
-#define SRC_METHOD_START_POS 4
-#define SRC_METHOD_END_POS 5
-#define DEST_METHOD_START_POS 2
-#define DEST_METHOD_END_POS 3
+#define MACHINE_RAM 256
 
-#define MACHINE_RAM 2000
+/** Directives types */
+enum directives {
+    DATA, STRING, STRUCT, ENTRY, EXTERN, UNKNOWN_TYPE
+    }; 
 
-/**************************************** Enums ****************************************/
+/** Commands ordered by their Opcode */
+enum commands {
+    MOV, CMP, ADD, SUB, NOT, CLR, LEA, INC, DEC, JMP, BNE, RED, PRN, JSR, RTS, STOP, UNKNOWN_COMMAND
+    }; 
 
-/* Directives types */
-enum directives {DATA, STRING, STRUCT, ENTRY, EXTERN, UNKNOWN_TYPE}; 
-
-/* Enum of commands ordered by their opcode */
-enum commands {MOV, CMP, ADD, SUB, NOT, CLR, LEA, INC, DEC, JMP, BNE, RED, PRN, JSR, RTS, STOP, UNKNOWN_COMMAND};
-
-/* Enum of all errors that can be outputted */
+/** List of all errors */
 enum errors {
     SYNTAX_ERR = 1, LABEL_ALREADY_EXISTS, LABEL_TOO_LONG, LABEL_INVALID_FIRST_CHAR, LABEL_ONLY_ALPHANUMERIC,
     LABEL_CANT_BE_COMMAND, LABEL_ONLY, LABEL_CANT_BE_REGISTER,
@@ -82,16 +74,22 @@ enum errors {
     CANNOT_OPEN_FILE,ER_EMPTY_MACRO
 };
 
-/* When we need to specify if label should contain a colon or not */
-enum {NO_COLON, COLON};
 
-/* Addressing methods ordered by their code */
-enum methods {METHOD_IMMEDIATE, METHOD_DIRECT, METHOD_STRUCT, METHOD_REGISTER, METHOD_UNKNOWN};
+enum {NO_COLON, COLON}; /** Check if label should contain a colon */
 
-/* A/R/E modes ordered by their numerical value */
-enum ARE {ABSOLUTE, EXTERNAL, RELOCATABLE};
+/** Addressing types */
+enum methods {
+    METHOD_IMMEDIATE, METHOD_DIRECT, METHOD_STRUCT, METHOD_REGISTER, METHOD_UNKNOWN
+    }; 
 
-/* Types of files that indicate what is the desirable file extension */
-enum filetypes {FILE_INPUT, FILE_OBJECT, FILE_ENTRY, FILE_EXTERN};
+/** A,R,E modes */
+enum ARE {
+    ABSOLUTE, EXTERNAL, RELOCATABLE
+    }; 
+
+/** Types of files extantions */
+enum filetypes {
+    FILE_INPUT, FILE_OBJECT, FILE_ENTRY, FILE_EXTERN
+    }; 
 
 #endif

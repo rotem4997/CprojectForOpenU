@@ -1,9 +1,11 @@
 #include "structs.h"
 #include "assembler.h"
 
-#define MACHINE_RAM 2000
+#define MACHINE_RAM 256
 
-extern int ic, dc;
+/** External Functions */
+
+extern int ic, dc; 
 extern int err;
 extern boolean was_error;
 extern labelPtr symbols_table;
