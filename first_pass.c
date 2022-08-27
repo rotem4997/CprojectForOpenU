@@ -9,23 +9,23 @@
 #include "prototypes.h"
 #include "utils.h"
 
-/* This function manages all the activities of the first pass */
+/* This function activates the first pass*/
 void first_pass(FILE *fp)
 {
-    char line[LINE_LENGTH]; /* This string will contain each line at a time */
+    char line[LINE_LENGTH]; /* This string will holds each line at a time */
     int line_num = 1; /* Line numbers start from 1 */
 
-    /* Initializing data and instructions counter */
+    /* Initialize IC  and DC */
     ic = 0;
     dc = 0;
 
     while(fgets(line, LINE_LENGTH, fp) != NULL) /* Read lines until end of file */
     {
-        err = NO_ERROR; /* Reset the error global var before parsing each line */
-        if(!ignore(line)) /* Ignore line if it's blank or ; */
+        err = NO_ERROR; /* Reset the error global variables before parsing each line */
+        if(!ignore(line)) /* Ignore line if it's blank or if it contains ";"  */
             read_line(line);
         if(is_error()) {
-            was_error = TRUE; /* There was at least one error through all the program */
+            was_error = TRUE; /* Checks if there is at least one error on the program */
             write_error(line_num); /* Output the error */
         }
         line_num++;
@@ -34,13 +34,13 @@ void first_pass(FILE *fp)
     /* When the first pass ends and the symbols table is complete and IC is evaluated,
        we can calculate real final addresses */
     offset_addresses(symbols_table, MEMORY_START, FALSE); /* Instruction symbols will have addresses that start from 100 (MEMORY_START) */
-    offset_addresses(symbols_table, ic + MEMORY_START, TRUE); /* Data symbols will have addresses that start fron NENORY_START + IC */
+    offset_addresses(symbols_table, ic + MEMORY_START, TRUE); /* Data symbols will have addresses that start fron MENORY_START + IC */
 }
 
-/* This function will analyze a given line from the file and will extract the information needed by the Maman's rules */
+/* This function will analyze a given line from the file and extract the needed information to proceed */
 void read_line(char *line)
 {
-    /* Initializing variables for the type of the directive/command */
+    /* Initializing variables for the type of the directive and command */
     int dir_type = UNKNOWN_TYPE;
     int command_type = UNKNOWN_COMMAND;
 
@@ -56,7 +56,7 @@ void read_line(char *line)
     }
 
     copy_token(current_token, line); /* Assuming that label is separated from other tokens by a whitespace */
-    if(is_label(current_token, COLON)) { /* We check if the first token is a label (and it should contain a colon) */
+    if(is_label(current_token, COLON)) { /*  check if the first token is a label (and it should contain a colon) */
         label = TRUE;
         label_node = add_label(&symbols_table, current_token, 0, FALSE, FALSE); /* adding label to the global symbols table */
         if(label_node == NULL) /* There was an error creating label */
@@ -77,7 +77,7 @@ void read_line(char *line)
     {
         if(label)
         {
-            if(dir_type == EXTERN || dir_type == ENTRY) { /* we need to ignore creation of label before .entry/.extern */
+            if(dir_type == EXTERN || dir_type == ENTRY) { /*ignore creation of label before .entry/.extern */
                 delete_label(&symbols_table, label_node->name);
                 label = FALSE;
             }
