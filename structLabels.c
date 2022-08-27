@@ -6,16 +6,12 @@
 #include "utils.h"
 #include "ext_vars.h"
 
-/* This function offsets the addresses of a certain group of labels (data/instruction labels)
- * by a given delta (num).
- */
+/**Offsets the addresses of a certain group of labels by a given delta*/
 void offset_addresses(labelPtr label, int num, boolean is_data)
 {
     while(label)
     {
-        /* We don't offset external labels (their address is 0). */
-        /* is_data and inActionStatement must have different values in order to meet the same criteria
-         * and the XOR operator gives us that */
+        
         if(!(label -> external) && (is_data ^ (label -> inActionStatement)))
         {
             label -> address += num;
@@ -24,8 +20,7 @@ void offset_addresses(labelPtr label, int num, boolean is_data)
     }
 }
 
-/* This function searches a label in the list and changes his entry field to TRUE and returns TRUE
-else if the label doesn't exist return FALSE. */
+/**Search a label in the list and changes his entry field to TRUE ,if the label doesn't exist return FALSE. */
 int make_entry(labelPtr h, char *name)
 {
     labelPtr label = get_label(h, name);
@@ -37,7 +32,7 @@ int make_entry(labelPtr h, char *name)
             return FALSE;
         }
         label -> entry = TRUE;
-        entry_exists = TRUE; /* Global variable that holds that there was at least one entry in the program */
+        entry_exists = TRUE; 
         return TRUE;
     }
     else
@@ -45,7 +40,7 @@ int make_entry(labelPtr h, char *name)
     return FALSE;
 }
 
-/* This function returns the address of a given label, if the label doesn't exist return FALSE (0).*/
+/** Return the address of a given label, if the label doesn't exist return FALSE*/
 unsigned int get_label_address(labelPtr h, char *name)
 {
     labelPtr label = get_label(h, name);
@@ -53,7 +48,7 @@ unsigned int get_label_address(labelPtr h, char *name)
     return FALSE;
 }
 
-/* This function check if a label is in the array and an external label is so return 1 else return 0 */
+/**Check if a label is in the array and an external label */
 boolean is_external_label(labelPtr h, char *name)
 {
     labelPtr label = get_label(h, name);
@@ -61,13 +56,13 @@ boolean is_external_label(labelPtr h, char *name)
     return FALSE;
 }
 
-/* This function checks if a given name is a name of a label in the list */
+/**Check if a given name is a name of a label in the list */
 boolean is_existing_label(labelPtr h, char *name)
 {
     return get_label(h, name) != NULL;
 }
 
-/* This function checks if a given label name is in the list if so return 1 else return 0. */
+/**Get Label function */
 labelPtr get_label(labelPtr h, char *name)
 {
 	while(h)
@@ -79,7 +74,7 @@ labelPtr get_label(labelPtr h, char *name)
 	return NULL;
 }
 
-/* This function adds a new label to the linked list of labels given its info. */
+/**Adds a new label to the list of labels */
 labelPtr add_label(labelPtr *hptr, char *name, unsigned int address, boolean external, ...)
 {	
 	va_list p;
@@ -93,19 +88,19 @@ labelPtr add_label(labelPtr *hptr, char *name, unsigned int address, boolean ext
 		return NULL;
 	}
 	temp=(labelPtr) malloc(sizeof(Labels)); 
-	if(!temp) /*if we couldn't allocate memory to temp then print an error massage and exit the program*/
+	if(!temp) 
 	{
 		printf("\nerror, cannot allocate memory\n");
 		exit(ERROR);
 	}
 
-	/* Storing the info of the label in temp */
+	
 	strcpy(temp->name, name);
     temp -> entry = FALSE;
 	temp -> address = address;
 	temp -> external = external;
 
-	if(!external) /* An external label can't be in an action statement */
+	if(!external) 
 	{
 		va_start(p,external);
 		temp -> inActionStatement = va_arg(p,boolean);
@@ -115,7 +110,7 @@ labelPtr add_label(labelPtr *hptr, char *name, unsigned int address, boolean ext
         extern_exists = TRUE;
     }
 
-	/* If the list is empty then we set the head of the list to be temp */
+	
 	if(!(*hptr))
 	{	
 		*hptr = temp;
@@ -123,7 +118,7 @@ labelPtr add_label(labelPtr *hptr, char *name, unsigned int address, boolean ext
 		return temp;	
 	}
 
-	/* Setting a pointer to go over the list until he points on the last label and then stting temp to be the new last label */
+	
 	while(t -> next != NULL)
 		t = t->next;
 	temp -> next = NULL;
@@ -133,10 +128,10 @@ labelPtr add_label(labelPtr *hptr, char *name, unsigned int address, boolean ext
 	return temp;
 }
 
-/* This function frees the allocated memory for the symbols table*/
+/**Frees the allocated memory for the symbols table*/
 void free_labels(labelPtr *hptr)
 {
-	/* Free the label list by going over each label and free it */
+
 	labelPtr temp;
 	while(*hptr)
 	{
@@ -146,13 +141,10 @@ void free_labels(labelPtr *hptr)
 	}
 }
 
-/* This function gets a label's name, searches the list for it and deletes the label.
- * If it managed to delete the label return 1 else return 0
- */
+/**Deletes label from list*/
 int delete_label(labelPtr *hptr, char *name)
 {
-    /* Goes over the label list and checking if a label by a given name is in the list if it is then deletes it by
-    free its space and change the previous label's pointer to point to the next label */
+    
     labelPtr temp = *hptr;
     labelPtr prevtemp;
     while (temp) {
