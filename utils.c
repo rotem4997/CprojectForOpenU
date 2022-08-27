@@ -9,25 +9,25 @@
 #include "ext_vars.h"
 #include "utils.h"
 
-/* This function extracts bits, given start and end positions of the bit-sequence (0 is LSB) */
+/** This function extracts bits, given start and end positions of the bits */
 unsigned int extract_bits(unsigned int word, int start, int end)
 {
     unsigned int result;
-    int length = end - start + 1; /* Length of bit-sequence */
-    unsigned int mask = (int) pow(2, length) - 1; /* Creating a '111...1' mask with above line's length */
+    int length = end - start + 1; /** Length of bits */
+    unsigned int mask = (int) pow(2, length) - 1; /** Creating mask with above line's length */
 
-    mask <<= start; /* Moving mask to place of extraction */
-    result = word & mask; /* The bits are now in their original position, and the rest is 0's */
-    result >>= start; /* Moving the sequence to LSB */
+    mask <<= start; /** Moving mask to place of extraction */
+    result = word & mask; /** Move bits to original position, and the rest is 0's */
+    result >>= start; 
     return result;
 }
 
-/* Converting a word to 2 digits in base 32 (as a string) */
+/** Converting a word to 2 digits in base 32  */
 char *convert_to_base_32(unsigned int num)
 {
     char *base32_seq = (char *) malloc(BASE32_SEQUENCE_LENGTH);
 
-    /* To convert from binary to base 32 we can just take the 5 right binary digits and 5 left */
+    /** Convert from binary to base 32*/
     base32_seq[0] = base32[extract_bits(num, 5, 9)];
     base32_seq[1] = base32[extract_bits(num, 0, 4)];
     base32_seq[2] = '\0';
@@ -35,17 +35,17 @@ char *convert_to_base_32(unsigned int num)
     return base32_seq;
 }
 
-/* This function checks if a string is a number (all digits) */
+/** This function checks if a string is a number */
 boolean is_number(char *seq)
 {
     if(end_of_line(seq)) return FALSE;
-    if(*seq == '+' || *seq == '-') /* a number can contain a plus or minus sign */
+    if(*seq == '+' || *seq == '-') 
     {
         seq++;
-        if(!isdigit(*seq++)) return FALSE; /* but not only a sign */
+        if(!isdigit(*seq++)) return FALSE; 
     }
 
-    /* Check that the rest of the token is made of digits */
+    /** Check that the rest of the token is made of numbers */
     while(!end_of_line(seq))
     {
         if(!isdigit(*seq++)) return FALSE;
@@ -53,37 +53,37 @@ boolean is_number(char *seq)
     return TRUE;
 }
 
-/* This function checks if a given sequence is a valid string (wrapped with "") */
+/** Checks if a given sequence is a valid string (wrapped with "") */
 boolean is_string(char *string)
 {
     if(string == NULL) return FALSE;
 
-    if (*string == '"') /* starts with " */
+    if (*string == '"')
         string++;
     else
         return FALSE;
 
-    while (*string && *string != '"') { /* Goes until end of string */
+    while (*string && *string != '"') {
         string++;
     }
 
-    if (*string != '"') /* a string must end with " */
+    if (*string != '"') 
         return FALSE;
 
     string++;
-    if (*string != '\0') /* string token must end after the ending " */
+    if (*string != '\0') /** string closer must end after the ending " */
         return FALSE;
 
     return TRUE;
 }
 
-/* This function inserts given A/R/E 2 bits into given info bit-sequence (the info is being shifted left) */
+/** insert given A/R/E into the bits */
 unsigned int insert_are(unsigned int info, int are)
 {
-    return (info << BITS_IN_ARE) | are; /* OR operand allows insertion of the 2 bits because 1 + 0 = 1 */
+    return (info << BITS_IN_ARE) | are; 
 }
 
-/* This function creates a file name by appending suitable extension (by type) to the original string */
+/** Creates a file name */
 char *create_file_name(char *original, int type)
 {
     char *modified = (char *) malloc(strlen(original) + MAX_EXTENSION_LENGTH);
@@ -95,7 +95,7 @@ char *create_file_name(char *original, int type)
 
     strcpy(modified, original); /* Copying original filename to the bigger string */
 
-    /* Concatenating the required file extension */
+    /** all file extentions possible */
 
     switch (type)
     {
@@ -118,20 +118,19 @@ char *create_file_name(char *original, int type)
     return modified;
 }
 
-/* This function inserts a given word to instructions memory */
+/** inserts a given word to instructions memory */
 void encode_to_instructions(unsigned int word)
 {
     instructions[ic++] = word;
 }
 
-/* This functions returns 1 if there's an error (AKA: global variable err has changed) */
+/** Returns 1 if there's an error  */
 int is_error()
 {
     return err != NO_ERROR;
 }
 
-/* This function receives line number as a parameter and prints a detailed error message
-   accordingly to the error global variable */
+/** Prints a detailed error message*/
 void write_error(int line_num)
 {
     fprintf(stderr, "ERROR (line %d): ", line_num);
@@ -313,9 +312,7 @@ void write_error(int line_num)
     }
 }
 
-/* This function copies the next token of a list (comma separated e.x. 1, "abc", 4) to a dest array.
- * Returns a pointer to the first character after the token
- */
+/**Copy the next token of a list to a dest array. Returns a pointer to the first character after the token*/
 char *next_list_token(char *dest, char *line)
 {
     char *temp = dest;
@@ -326,16 +323,16 @@ char *next_list_token(char *dest, char *line)
         return NULL;
     }
 
-    if(isspace(*line)) /* If there are spaces in the beginning of the token, skip them */
+    if(isspace(*line)) 
         line = skip_spaces(line);
 
-    if(*line == ',') /* A comma deserves a separate, single-character token */
+    if(*line == ',') 
     {
         strcpy(dest, ",");
         return ++line;
     }
 
-    /* Manually copying token until a ',', whitespace or end of line */
+    
     while(!end_of_line(line) && *line != ',' && !isspace(*line))
     {
         *temp = *line;
@@ -347,9 +344,7 @@ char *next_list_token(char *dest, char *line)
     return line;
 }
 
-/* This function copies supposedly next string into dest array and returning a pointer to the
- * first character after it
- */
+/** Copy next string into dest array and retur a pointer to the first character after it*/
 char *next_token_string(char *dest, char *line)
 {
     char temp[LINE_LENGTH];
@@ -363,13 +358,13 @@ char *next_token_string(char *dest, char *line)
     return line;
 }
 
-/* Checking for the end of line/given token in the character that char* points to */
+
 int end_of_line(char *line)
 {
     return line == NULL || *line == '\0' || *line == '\n';
 }
 
-/* This function returns a pointer to the start of next token in the line */
+/** Return a pointer to the start of next token in the line */
 char *next_token(char *seq)
 {
     if(seq == NULL) return NULL;
@@ -379,7 +374,7 @@ char *next_token(char *seq)
     return seq;
 }
 
-/* This function copies the next token (until a space or end of line) to a destination string */
+/** copy the next token to a destination string */
 void copy_token(char *dest, char *line)
 {
     int i = 0;
@@ -393,7 +388,7 @@ void copy_token(char *dest, char *line)
     dest[i] = '\0';
 }
 
-/* This function finds an index of a string in an array of strings */
+/**Find an index of a string in an array of strings */
 int find_index(char *token, const char *arr[], int n)
 {
     int i;
@@ -403,23 +398,23 @@ int find_index(char *token, const char *arr[], int n)
     return NOT_FOUND;
 }
 
-/* Check if a token matches a register name */
+/** Check if a token matches a register name */
 boolean is_register(char *token)
 {
-    /* A register must have 2 characters, the first is 'r' and the second is a number between 0-7 */
+   
     return strlen(token) == REGISTER_LENGTH && token[0] == 'r' &&
             token[1] >= '0' &&
             token[1] <= '7';
 }
 
-/* Check if a token matches a directive name */
+/** Check if a token matches a directive name */
 int find_directive(char *token)
 {
     if(token == NULL || *token != '.') return NOT_FOUND;
     return find_index(token, directives, NUM_DIRECTIVES);
 }
 
-/* Check if a token matches a command name */
+/** Check if a token matches a command name */
 int find_command(char *token)
 {
     int token_len = strlen(token);
@@ -428,16 +423,16 @@ int find_command(char *token)
     return find_index(token, commands, NUM_COMMANDS);
 }
 
-/* This function skips spaces of a string and returns a pointer to the first non-blank character */
+/** skips spaces of a string  */
 char *skip_spaces(char *ch)
 {
     if(ch == NULL) return NULL;
-    while (isspace(*ch)) /* Continue the loop if the character is a whitespace */
+    while (isspace(*ch)) 
         ch++;
     return ch;
 }
 
-/* Function that ignores a line if it's blank/a comment */
+/** Ignores a line if it's blank/a comment */
 int ignore(char *line)
 {
     line = skip_spaces(line);
