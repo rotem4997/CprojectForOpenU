@@ -4,7 +4,7 @@
 
 #include "structs.h"
 
-/* This function adds a node to the end of the list */
+/**Add a node to the end of the list */
 extPtr add_ext(extPtr *hptr, char *name, unsigned int reference)
 {
     extPtr t=*hptr;
@@ -37,10 +37,10 @@ extPtr add_ext(extPtr *hptr, char *name, unsigned int reference)
     return temp;
 }
 
-/* This function frees the allocated memory for the list */
+/** Frees allocated memory for the list */
 void free_ext(extPtr *hptr)
 {
-    /* Frees the extern list by going over each extern node and free it*/
+ 
     extPtr temp=*hptr;
     if(temp) {
         unsigned int last_reference = ((*hptr)->prev)->address;
@@ -54,7 +54,7 @@ void free_ext(extPtr *hptr)
     }
 }
 
-/* This function prints the ext list */
+/** Prints the ext list */
 void print_ext(extPtr h)
 {
     extPtr orig=h;
